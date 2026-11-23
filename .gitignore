@@ -1,0 +1,19 @@
+# Dependencies & OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Archives & Temporary Files
+*.zip
+*.tar.gz
+*.rar
+
+# IDE & Editor Configs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Antigravity artifacts
+.system_generated/
