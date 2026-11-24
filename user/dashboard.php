@@ -239,22 +239,22 @@ require_once __DIR__ . '/../includes/header.php';
         <?php else: ?>
             <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                 <?php foreach ($recentApplications as $appl): ?>
-                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="bordered-item-card">
                         <div>
-                            <div style="font-size: 0.8rem; color: #0284c7; font-weight: 700;">
+                            <div style="font-size: 0.82rem; color: #0284c7; font-weight: 700;">
                                 <?php echo e($appl['application_ref']); ?>
                             </div>
-                            <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin: 0.15rem 0;">
+                            <div style="font-weight: 700; color: #1e293b; font-size: 0.98rem; margin: 0.2rem 0;">
                                 <?php echo e($appl['service_name']); ?>
                             </div>
-                            <div style="font-size: 0.8rem; color: #64748b;">
+                            <div style="font-size: 0.82rem; color: #64748b;">
                                 Submitted: <?php echo date('d M Y', strtotime($appl['submitted_date'])); ?>
                             </div>
                         </div>
                         <div style="text-align: right;">
                             <div><?php echo renderStatusBadge($appl['status']); ?></div>
-                            <a href="my_applications.php" style="display: inline-block; margin-top: 0.4rem; font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600;">
-                                View &rarr;
+                            <a href="my_applications.php" class="btn btn-outline btn-sm" style="margin-top: 0.45rem; padding: 0.3rem 0.75rem; font-size: 0.78rem;">
+                                View Details &rarr;
                             </a>
                         </div>
                     </div>

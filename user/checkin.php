@@ -177,28 +177,28 @@ require_once __DIR__ . '/../includes/header.php';
 
             <!-- Details Grid -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: left; margin-bottom: 2rem;">
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.15rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
                     <div style="font-size: 0.78rem; color: #64748b; text-transform: uppercase;">Service Type</div>
                     <div style="font-weight: 700; color: #1e293b; font-size: 1rem; margin-top: 0.2rem;">
                         <?php echo e($activeQueue['service_type']); ?>
                     </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.15rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
                     <div style="font-size: 0.78rem; color: #64748b; text-transform: uppercase;">Appointment Reference</div>
                     <div style="font-weight: 700; color: #0284c7; font-size: 1rem; margin-top: 0.2rem;">
                         <?php echo !empty($activeQueue['appointment_ref']) ? e($activeQueue['appointment_ref']) : 'Walk-in Ticket'; ?>
                     </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.15rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
                     <div style="font-size: 0.78rem; color: #64748b; text-transform: uppercase;">Check-in Timestamp</div>
                     <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-top: 0.2rem;">
                         <?php echo date('d M Y, h:i A', strtotime($activeQueue['created_at'])); ?>
                     </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.15rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
                     <div style="font-size: 0.78rem; color: #64748b; text-transform: uppercase;">Assigned Counter</div>
                     <div style="font-weight: 700; color: #16a34a; font-size: 0.95rem; margin-top: 0.2rem;">
                         <?php echo $activeQueue['counter_number'] ? e($activeQueue['counter_number']) : 'Standby (Assigned when called)'; ?>

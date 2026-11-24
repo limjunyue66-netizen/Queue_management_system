@@ -140,7 +140,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <div class="grid grid-cols-4" style="gap: 1rem;">
         <?php foreach ($counterStatuses as $c): ?>
-            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; background: <?php echo ($c['status'] === 'open') ? '#fff' : '#f8fafc'; ?>; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; background: <?php echo ($c['status'] === 'open') ? '#ffffff' : '#f8fafc'; ?>; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <strong style="color: #0f172a; font-size: 1.05rem;"><?php echo e($c['counter_number']); ?></strong>

@@ -109,13 +109,14 @@ require_once __DIR__ . '/../includes/header.php';
                         $left = getAvailableSlotsCount($pdo, $selectedService, $selectedDate, $slot);
                         $isFull = ($left <= 0);
                         $isChecked = ($selectedSlot === $slot && !$isFull);
+                        $cardClass = 'time-slot-card' . ($isChecked ? ' selected' : '') . ($isFull ? ' disabled' : '');
                     ?>
-                        <label style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; border: 2px solid <?php echo $isChecked ? 'var(--primary)' : ($isFull ? '#e2e8f0' : 'var(--border-color)'); ?>; border-radius: var(--radius-sm); cursor: <?php echo $isFull ? 'not-allowed' : 'pointer'; ?>; background: <?php echo $isChecked ? '#eff6ff' : ($isFull ? '#f8fafc' : '#fff'); ?>; opacity: <?php echo $isFull ? '0.6' : '1'; ?>;">
+                        <label class="<?php echo $cardClass; ?>">
                             <div style="display: flex; align-items: center; gap: 0.65rem;">
-                                <input type="radio" name="time_slot" value="<?php echo e($slot); ?>" <?php echo $isChecked ? 'checked' : ''; ?> <?php echo $isFull ? 'disabled' : ''; ?> style="accent-color: var(--primary);">
+                                <input type="radio" name="time_slot" value="<?php echo e($slot); ?>" <?php echo $isChecked ? 'checked' : ''; ?> <?php echo $isFull ? 'disabled' : ''; ?> style="accent-color: var(--primary); width: 16px; height: 16px;">
                                 <span style="font-weight: 600; font-size: 0.92rem; color: #1e293b;"><?php echo e($slot); ?></span>
                             </div>
-                            <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 12px; background: <?php echo $isFull ? '#fee2e2' : '#dcfce7'; ?>; color: <?php echo $isFull ? '#b91c1c' : '#15803d'; ?>;">
+                            <span style="font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 12px; background: <?php echo $isFull ? '#fee2e2' : '#dcfce7'; ?>; color: <?php echo $isFull ? '#b91c1c' : '#15803d'; ?>; border: 1px solid <?php echo $isFull ? '#fca5a5' : '#bbf7d0'; ?>;">
                                 <?php echo $isFull ? 'Full' : "$left slots left"; ?>
                             </span>
                         </label>
