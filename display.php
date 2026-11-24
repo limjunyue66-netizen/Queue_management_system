@@ -1,161 +1,392 @@
 <?php
 // ===================================================
-// Real-time Queue Display Screen (Public TV / Monitor)
+// Real-time Public Queue Calling Display (TV Monitor)
+// Supports Audio Announcements, Clock & Fullscreen
 // ===================================================
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
 $pdo = getDBConnection();
-$pageTitle = 'Live Calling Display Screen';
+$today = date('Y-m-d');
 
-// Fetch the most recently called queue
-$stmtCurrent = $pdo->query("
+// Fetch all currently serving or calling queues across all counters
+$stmtActive = $pdo->query("
     SELECT q.*, c.counter_number, c.counter_name 
     FROM queues q 
-    LEFT JOIN counters c ON q.counter_id = c.id 
-    WHERE q.status IN ('calling', 'serving') 
-    ORDER BY q.called_at DESC 
-    LIMIT 1
+    JOIN counters c ON q.counter_id = c.id 
+    WHERE q.status IN ('calling', 'serving') AND DATE(q.created_at) = CURDATE()
+    ORDER BY q.status ASC, q.called_at DESC
 ");
-$currentCall = $stmtCurrent->fetch();
+$activeServingList = $stmtActive->fetchAll();
 
-// Fetch status of all counters (Open counters and what they are currently serving)
-$counters = $pdo->query("
-    SELECT c.*, 
-           q.queue_number AS active_queue, 
-           q.status AS queue_status,
-           u.full_name AS staff_name
-    FROM counters c
-    LEFT JOIN queues q ON q.counter_id = c.id AND q.status IN ('calling', 'serving')
-    LEFT JOIN users u ON c.current_staff_id = u.id
-    ORDER BY c.counter_number ASC
-")->fetchAll();
-
-// Fetch upcoming waiting tickets
+// Fetch upcoming waiting tickets (Next Queue list)
 $stmtWaiting = $pdo->query("
-    SELECT queue_number, customer_name, service_type, created_at 
-    FROM queues 
-    WHERE status = 'waiting' AND DATE(created_at) = CURDATE() 
-    ORDER BY id ASC 
-    LIMIT 8
+    SELECT q.*, s.code as service_code
+    FROM queues q
+    LEFT JOIN services s ON q.service_id = s.id
+    WHERE q.status = 'waiting' AND DATE(q.created_at) = CURDATE() 
+    ORDER BY q.id ASC 
+    LIMIT 10
 ");
-$waitingTickets = $stmtWaiting->fetchAll();
+$waitingList = $stmtWaiting->fetchAll();
 
-require_once __DIR__ . '/includes/header.php';
+// Metrics for footer
+$totalWaiting = count($waitingList);
+$completedCount = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status = 'completed' AND DATE(created_at) = CURDATE()")->fetchColumn();
+$activeCountersCount = (int)$pdo->query("SELECT COUNT(*) FROM counters WHERE status = 'open'")->fetchColumn();
+
+// Most recently called ticket for voice announcement
+$recentCalled = $pdo->query("
+    SELECT q.queue_number, c.counter_number 
+    FROM queues q 
+    JOIN counters c ON q.counter_id = c.id 
+    WHERE q.status = 'calling' AND DATE(q.created_at) = CURDATE() 
+    ORDER BY q.called_at DESC LIMIT 1
+")->fetch();
+
+$recentTicketJson = $recentCalled ? json_encode($recentCalled) : 'null';
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Calling Display - QueueFlow</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            background-color: #0b1329;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+        .tv-topbar {
+            background: #0f1e42;
+            border-bottom: 2px solid #2563eb;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tv-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .tv-logo {
+            width: 44px;
+            height: 44px;
+            background: #2563eb;
+            color: #fff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tv-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+            margin: 0;
+        }
+        .tv-subtitle {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .tv-clock-box {
+            text-align: right;
+        }
+        .tv-clock {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #f59e0b;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
+        }
+        .tv-date {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+        .tv-content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.75rem;
+            padding: 2rem;
+            min-height: calc(100vh - 160px);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: #14244d;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 1rem;
+        }
+        .section-title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #f59e0b;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pill-badge {
+            background: #f59e0b;
+            color: #0f172a;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+        }
+        .active-card {
+            background: #132247;
+            border: 2px solid #1e3a8a;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .active-card.is-calling {
+            border-color: #f59e0b;
+            background: #192b59;
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        .big-ticket {
+            font-size: 3.8rem;
+            font-weight: 900;
+            color: #38bdf8;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+        .waiting-list-item {
+            background: #132247;
+            border: 1px solid #1e3a8a;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tv-footer {
+            background: #080d1a;
+            border-top: 1px solid #1e293b;
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #10b981;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
 
-<div class="display-header">
-    <h1 style="font-size: 2.3rem; font-weight: 900; margin-bottom: 0.25rem; letter-spacing: -0.5px;">
-        <?php echo getIcon('tv', 32); ?> NOW SERVING DISPLAY
-    </h1>
-    <p style="opacity: 0.85; font-size: 1rem;">
-        <?php echo date('l, d F Y'); ?> &bull; Real-time Calling Screen & Counter Status (Auto updates every 5 seconds)
-    </p>
-</div>
-
-<!-- Main Spotlight / Calling Hero -->
-<?php if ($currentCall): ?>
-    <div class="serving-hero <?php echo $currentCall['status'] === 'calling' ? 'active' : ''; ?>">
-        <div style="font-size: 1.3rem; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px;">
-            <?php echo $currentCall['status'] === 'calling' ? '🔔 NOW CALLING TICKET' : 'CURRENTLY SERVING'; ?>
+    <!-- Top Display Header -->
+    <div class="tv-topbar">
+        <div class="tv-brand">
+            <div class="tv-logo">
+                <?php echo getIcon('ticket', 24); ?>
+            </div>
+            <div>
+                <h1 class="tv-title">QueueFlow Live Display</h1>
+                <div class="tv-subtitle">Official Public Calling Display Screen</div>
+            </div>
         </div>
-        <div class="hero-number"><?php echo e($currentCall['queue_number']); ?></div>
+
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <!-- Sound Toggle Button -->
+            <button id="soundToggleBtn" onclick="toggleSound()" class="btn btn-secondary btn-sm" style="background:#1e293b; color:#fff; border-color:#334155; padding: 0.4rem 0.85rem;">
+                🔊 Sound: Active
+            </button>
+
+            <!-- Fullscreen Button -->
+            <button onclick="toggleFullscreen()" class="btn btn-secondary btn-sm" style="background:#1e293b; color:#fff; border-color:#334155; padding: 0.4rem 0.85rem;">
+                ⛶ Fullscreen
+            </button>
+
+            <!-- Clock & Date -->
+            <div class="tv-clock-box">
+                <div id="liveClock" class="tv-clock"><?php echo date('h:i:s A'); ?></div>
+                <div class="tv-date"><?php echo date('l, d F Y'); ?></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Live Screen Area -->
+    <div class="tv-content-grid">
+        <!-- Left Column: Currently Serving -->
         <div>
-            <span class="hero-counter">
-                <?php echo getIcon('counter', 24); ?> Please proceed to: <?php echo e($currentCall['counter_number'] ?? 'Assigned Counter'); ?>
-            </span>
+            <div class="section-header">
+                <div class="section-title">
+                    📢 CURRENTLY SERVING
+                </div>
+                <span class="pill-badge"><?php echo count($activeServingList); ?> ACTIVE</span>
+            </div>
+
+            <?php if (empty($activeServingList)): ?>
+                <div style="background: #132247; border: 1px dashed #1e3a8a; border-radius: 12px; padding: 5rem 2rem; text-align: center; color: #64748b;">
+                    <div style="font-size: 1.6rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.5rem;">
+                        No Numbers Currently Being Served
+                    </div>
+                    <p style="font-size: 1rem; margin: 0;">Counters will call upcoming ticket numbers shortly.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($activeServingList as $act): ?>
+                    <div class="active-card <?php echo ($act['status'] === 'calling') ? 'is-calling' : ''; ?>">
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.35rem;">
+                                <?php echo ($act['status'] === 'calling') ? '🔔 NOW CALLING' : 'IN SERVICE'; ?>
+                            </div>
+                            <div class="big-ticket"><?php echo e($act['queue_number']); ?></div>
+                            <div style="color: #94a3b8; font-size: 1.1rem; margin-top: 0.5rem;">
+                                Customer: <strong style="color: #fff;"><?php echo e($act['customer_name']); ?></strong> &bull; 
+                                <?php echo e($act['service_type']); ?>
+                            </div>
+                        </div>
+
+                        <div style="text-align: right; background: #0b1329; border: 1px solid #1e3a8a; border-radius: 12px; padding: 1.25rem 2rem;">
+                            <div style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">PLEASE PROCEED TO</div>
+                            <div style="font-size: 2.2rem; font-weight: 900; color: #10b981; margin-top: 0.2rem;">
+                                <?php echo e($act['counter_number']); ?>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #cbd5e1;"><?php echo e($act['counter_name']); ?></div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
-        <div style="margin-top: 1.25rem; color: #475569; font-size: 1.05rem;">
-            Department / Service: <strong><?php echo e($currentCall['service_type']); ?></strong> &bull; Customer: <strong><?php echo e($currentCall['customer_name']); ?></strong>
+
+        <!-- Right Column: Next in Queue -->
+        <div>
+            <div class="section-header" style="border-left-color: #38bdf8;">
+                <div class="section-title" style="color: #38bdf8;">
+                    👥 NEXT QUEUE
+                </div>
+                <span class="pill-badge" style="background: #38bdf8;"><?php echo count($waitingList); ?> WAITING</span>
+            </div>
+
+            <?php if (empty($waitingList)): ?>
+                <div style="background: #132247; border: 1px dashed #1e3a8a; border-radius: 12px; padding: 3rem 1.5rem; text-align: center; color: #64748b;">
+                    No customers currently waiting.
+                </div>
+            <?php else: ?>
+                <?php foreach ($waitingList as $wq): ?>
+                    <div class="waiting-list-item">
+                        <div>
+                            <span style="font-size: 1.6rem; font-weight: 900; color: #38bdf8; font-family: monospace;">
+                                <?php echo e($wq['queue_number']); ?>
+                            </span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; color: #f8fafc; font-size: 0.95rem;"><?php echo e($wq['service_type']); ?></div>
+                            <small style="color: #64748b;">Ticket issued: <?php echo date('h:i A', strtotime($wq['created_at'])); ?></small>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
-<?php else: ?>
-    <div class="card" style="text-align: center; padding: 3rem; margin-bottom: 2rem;">
-        <div style="color: var(--text-muted); font-size: 1.3rem;">
-            <?php echo getIcon('clock', 36); ?><br>
-            <strong>No active customer being called right now.</strong>
-            <p style="font-size: 0.95rem; margin-top: 0.5rem;">Please take a ticket at the kiosk and wait for your number.</p>
+
+    <!-- TV Footer Status Bar -->
+    <div class="tv-footer">
+        <div>
+            <span class="pulse-dot"></span> Live Connection Active &bull;
+            Counters Open: <strong><?php echo $activeCountersCount; ?></strong>
+        </div>
+        <div>
+            Total Waiting: <strong><?php echo $totalWaiting; ?></strong> &bull; 
+            Completed Today: <strong><?php echo $completedCount; ?></strong>
+        </div>
+        <div>
+            Press <strong>F11</strong> for Fullscreen Display &bull; Auto-updates every 5s
         </div>
     </div>
-<?php endif; ?>
 
-<!-- Counters Status Grid -->
-<div class="page-header" style="margin-bottom: 1rem;">
-    <h2 class="page-title" style="font-size: 1.3rem;"><?php echo getIcon('counter', 20); ?> Counter Overview</h2>
-</div>
+    <script>
+        // Real-time Clock
+        function updateClock() {
+            var now = new Date();
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var seconds = now.getSeconds();
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            var strTime = (hours < 10 ? '0' + hours : hours) + ':' + minutes + ':' + seconds + ' ' + ampm;
+            var clockEl = document.getElementById('liveClock');
+            if (clockEl) clockEl.innerText = strTime;
+        }
+        setInterval(updateClock, 1000);
 
-<div class="grid grid-4" style="margin-bottom: 2.5rem;">
-    <?php foreach ($counters as $cnt): ?>
-        <div class="counter-display-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <span style="font-weight: 700; font-size: 1.1rem; color: #1e293b;"><?php echo e($cnt['counter_number']); ?></span>
-                <?php echo renderStatusBadge($cnt['status']); ?>
-            </div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); min-height: 20px;">
-                <?php echo e($cnt['counter_name']); ?>
-            </div>
+        // Sound Notification Handling
+        var soundEnabled = true;
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            var btn = document.getElementById('soundToggleBtn');
+            btn.innerText = soundEnabled ? '🔊 Sound: Active' : '🔇 Sound: Muted';
+        }
 
-            <div class="counter-display-num">
-                <?php if ($cnt['status'] === 'open' && $cnt['active_queue']): ?>
-                    <span style="color: #2563eb;"><?php echo e($cnt['active_queue']); ?></span>
-                <?php elseif ($cnt['status'] === 'open'): ?>
-                    <span style="color: #94a3b8; font-size: 1.3rem; font-weight: 500;">Idle</span>
-                <?php else: ?>
-                    <span style="color: #cbd5e1; font-size: 1.3rem; font-weight: 500;">Closed</span>
-                <?php endif; ?>
-            </div>
+        // Voice Announcer using Web Speech API
+        var recentCall = <?php echo $recentTicketJson; ?>;
+        var lastAnnounced = sessionStorage.getItem('last_announced_ticket');
 
-            <div style="font-size: 0.8rem; color: #64748b; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
-                Staff: <?php echo !empty($cnt['staff_name']) ? e($cnt['staff_name']) : 'Unassigned'; ?>
-            </div>
-        </div>
-    <?php endforeach; ?>
-</div>
+        if (recentCall && recentCall.queue_number && recentCall.queue_number !== lastAnnounced) {
+            sessionStorage.setItem('last_announced_ticket', recentCall.queue_number);
+            if ('speechSynthesis' in window) {
+                // Short chime and announcement
+                var msg = new SpeechSynthesisUtterance("Ticket number " + recentCall.queue_number.split('').join(' ') + ", please proceed to " + recentCall.counter_number);
+                msg.rate = 0.9;
+                window.speechSynthesis.speak(msg);
+            }
+        }
 
-<!-- Upcoming Waiting Tickets Table -->
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title"><?php echo getIcon('clock', 20); ?> Next in Line (Waiting Queue)</h3>
-        <span class="badge badge-waiting"><?php echo count($waitingTickets); ?> Up Next</span>
-    </div>
+        // Fullscreen Toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(function(err) {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
 
-    <?php if (empty($waitingTickets)): ?>
-        <p style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No customers currently waiting in line.</p>
-    <?php else: ?>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Queue Number</th>
-                        <th>Customer Name</th>
-                        <th>Service Type</th>
-                        <th>Waiting Since</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($waitingTickets as $wait): ?>
-                        <tr>
-                            <td><strong style="color: #2563eb; font-size: 1.1rem;"><?php echo e($wait['queue_number']); ?></strong></td>
-                            <td><?php echo e($wait['customer_name']); ?></td>
-                            <td><?php echo e($wait['service_type']); ?></td>
-                            <td><?php echo formatTimeOnly($wait['created_at']); ?></td>
-                            <td><?php echo renderStatusBadge('waiting'); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php endif; ?>
-</div>
-
-<!-- Auto-refresh script: simple, zero-framework, beginner-friendly polling -->
-<script>
-    // Refresh page every 5 seconds to show live updates smoothly
-    setTimeout(function() {
-        window.location.reload();
-    }, 5000);
-</script>
-
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+        // Auto Refresh every 5 seconds
+        setTimeout(function() {
+            window.location.reload();
+        }, 5000);
+    </script>
+</body>
+</html>

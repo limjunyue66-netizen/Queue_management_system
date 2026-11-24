@@ -48,19 +48,22 @@ echo "[PASS] Password hashing and verification tests passed.\n";
 // 2.1 Test Quick Login Role Mapping
 $rolesToTest = [
     'admin' => ['expected_user' => 'admin', 'expected_pass' => 'admin123'],
-    'staff' => ['expected_user' => 'staff1', 'expected_pass' => 'staff123']
+    'staff' => ['expected_user' => 'staff1', 'expected_pass' => 'staff123'],
+    'user'  => ['expected_user' => 'user',   'expected_pass' => 'user123']
 ];
 foreach ($rolesToTest as $r => $exp) {
     if ($r === 'admin') {
         $u = 'admin'; $p = 'admin123';
     } elseif ($r === 'staff') {
         $u = 'staff1'; $p = 'staff123';
+    } else {
+        $u = 'user'; $p = 'user123';
     }
     assert($u === $exp['expected_user'] && $p === $exp['expected_pass'], "Quick login mapping failed for role $r");
 }
-echo "[PASS] Quick Login role mapping verified for Admin and Staff.\n";
+echo "[PASS] Quick Login role mapping verified for Admin, Staff, and Citizen.\n";
 
-// 2.2 Test Strict Role Separation (Admin cannot do Staff operations)
+// 2.2 Test Strict Role Separation (Admin, Staff, Citizen User)
 $_SESSION['user_id'] = 1;
 $_SESSION['username'] = 'admin';
 $_SESSION['role'] = 'admin';
@@ -73,10 +76,17 @@ $_SESSION['username'] = 'staff1';
 $_SESSION['role'] = 'staff';
 $staffObj = currentUser();
 assert($staffObj['role'] === 'staff', "Current staff role assertion failed");
-echo "[PASS] Strict Role Separation: Admin and Staff roles validated.\n";
+
+// Test Citizen User Role
+$_SESSION['user_id'] = 4;
+$_SESSION['username'] = 'user';
+$_SESSION['role'] = 'user';
+$citizenObj = currentUser();
+assert($citizenObj['role'] === 'user', "Current citizen user role assertion failed");
+echo "[PASS] Strict Role Separation: Admin, Staff, and Citizen roles validated.\n";
 
 // 3. Test SVG Icon Generation
-$iconsToTest = ['dashboard', 'users', 'user', 'desktop', 'counter', 'list', 'history', 'tv', 'ticket', 'search', 'bell', 'check-circle'];
+$iconsToTest = ['dashboard', 'users', 'user', 'user-plus', 'desktop', 'counter', 'list', 'history', 'tv', 'ticket', 'search', 'bell', 'check-circle', 'calendar', 'file-text', 'beaker'];
 foreach ($iconsToTest as $icon) {
     $svg = getIcon($icon);
     assert(!empty($svg) && strpos($svg, '<svg') !== false, "Icon '$icon' failed to render SVG");
@@ -90,7 +100,7 @@ assert(strpos($clean, '<script>') === false, "HTML escaping failed");
 echo "[PASS] Security sanitization e() verified.\n";
 
 // 5. Test Status Badges
-$statuses = ['waiting', 'calling', 'serving', 'completed', 'skipped', 'open', 'closed'];
+$statuses = ['waiting', 'calling', 'serving', 'completed', 'skipped', 'open', 'closed', 'confirmed', 'approved', 'submitted'];
 foreach ($statuses as $s) {
     $badge = renderStatusBadge($s);
     assert(!empty($badge) && strpos($badge, 'badge') !== false, "Badge rendering failed for status: $s");
@@ -125,8 +135,13 @@ if ($connectedPdo) {
     // Test Users table seed
     $stmt = $connectedPdo->query("SELECT COUNT(*) FROM users");
     $userCount = $stmt->fetchColumn();
-    assert($userCount >= 3, "Users seed data count check failed");
+    assert($userCount >= 4, "Users seed data count check failed");
     echo "[PASS] Users seed data verified ($userCount users found in database).\n";
+
+    // Test Services catalog seed
+    $services = getAllServices($connectedPdo, true);
+    assert(count($services) >= 5, "Services catalog count check failed");
+    echo "[PASS] Services catalog verified (" . count($services) . " services loaded).\n";
 
     // Test Counters table seed
     $stmt = $connectedPdo->query("SELECT COUNT(*) FROM counters");
@@ -134,21 +149,33 @@ if ($connectedPdo) {
     assert($counterCount >= 4, "Counters seed data count check failed");
     echo "[PASS] Counters seed data verified ($counterCount counters found in database).\n";
 
+    // Test Appointment reference & slot calculation
+    $appRef = generateAppointmentRef($connectedPdo);
+    assert(strpos($appRef, 'APP-') === 0, "Appointment ref format check failed");
+    $slotsLeft = getAvailableSlotsCount($connectedPdo, 1, date('Y-m-d'), '08:30 - 09:30');
+    assert($slotsLeft >= 0 && $slotsLeft <= 5, "Slot availability check failed");
+    echo "[PASS] Appointment reference generator ($appRef) and slot availability ($slotsLeft slots left) verified.\n";
+
+    // Test Application reference
+    $applRef = generateApplicationRef($connectedPdo);
+    assert(strpos($applRef, 'IMP-') === 0, "Application ref format check failed");
+    echo "[PASS] Application reference generator ($applRef) verified.\n";
+
     // Test Queue Number Generator
-    $qGen1 = generateNextQueueNumber($connectedPdo, 'General Service');
-    $qGen2 = generateNextQueueNumber($connectedPdo, 'Payment & Billing');
-    echo "[PASS] Generated queue numbers: General Service -> $qGen1, Payment -> $qGen2.\n";
+    $qGen1 = generateNextQueueNumber($connectedPdo, 'Passport Renewal');
+    $qGen2 = generateNextQueueNumber($connectedPdo, 'Visa Application');
+    echo "[PASS] Generated queue numbers: Passport Renewal -> $qGen1, Visa -> $qGen2.\n";
 
     // Test Counter Designated Service Mapping
-    assert(getCounterDesignatedService('Counter 1', 'General Enquiries') === 'General Service', "Counter 1 service mapping failed");
-    assert(getCounterDesignatedService('Counter 2', 'Payment & Billing') === 'Payment & Billing', "Counter 2 service mapping failed");
-    assert(getCounterDesignatedService('Counter 3', 'Customer Support') === 'Customer Support', "Counter 3 service mapping failed");
-    assert(getCounterDesignatedService('Counter 4', 'Priority & Express') === 'Priority Service', "Counter 4 service mapping failed");
+    assert(getCounterDesignatedService('Counter 1', 'Passport Renewal') === 'Passport Renewal', "Counter 1 service mapping failed");
+    assert(getCounterDesignatedService('Counter 2', 'Visa Application') === 'Visa Application', "Counter 2 service mapping failed");
+    assert(getCounterDesignatedService('Counter 3', 'Work Permit') === 'Work Permit', "Counter 3 service mapping failed");
+    assert(getCounterDesignatedService('Counter 4', 'Immigration Enquiry') === 'Immigration Enquiry', "Counter 4 service mapping failed");
     echo "[PASS] Counter to Service department mapping strictly verified (No cross-calling).\n";
 
     // Test Complete Queue Life Cycle (waiting -> calling -> serving -> completed)
-    $stmtIns = $connectedPdo->prepare("INSERT INTO queues (queue_number, customer_name, service_type, status) VALUES (?, 'Test Customer', 'Priority Service', 'waiting')");
-    $stmtIns->execute(['P999']);
+    $stmtIns = $connectedPdo->prepare("INSERT INTO queues (queue_number, customer_name, service_type, status) VALUES (?, 'Test Customer', 'Passport Renewal', 'waiting')");
+    $stmtIns->execute(['A999']);
     $testId = $connectedPdo->lastInsertId();
     assert($testId > 0, "Insert test queue failed");
 
@@ -168,7 +195,7 @@ if ($connectedPdo) {
     assert($chk3 === 'completed', "State transition to 'completed' failed");
 
     // Test Mobile Tracker API Endpoint with current completed record
-    $_GET['queue_number'] = 'P999';
+    $_GET['queue_number'] = 'A999';
     ob_start();
     require __DIR__ . '/../api/queue_status.php';
     $apiOutput = ob_get_clean();

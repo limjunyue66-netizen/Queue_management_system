@@ -2,6 +2,7 @@
 // ===================================================
 // Shared Page Header & Navigation
 // Two-Tier Clean & Modern Layout (Zero Overflow & Overlap)
+// Supports Admin, Staff, and Citizen Portals
 // ===================================================
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
@@ -14,6 +15,7 @@ $user = currentUser();
 $currentPage = basename($_SERVER['PHP_SELF']);
 $inAdmin = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
 $inStaff = strpos($_SERVER['REQUEST_URI'], '/staff/') !== false;
+$inUser  = strpos($_SERVER['REQUEST_URI'], '/user/') !== false;
 
 // Base url helper
 $baseUrl = '/Queue_management_system';
@@ -23,7 +25,7 @@ $baseUrl = '/Queue_management_system';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($pageTitle) ? e($pageTitle) . ' - QueueFlow' : 'QueueFlow - Queue Management System'; ?></title>
+    <title><?php echo isset($pageTitle) ? e($pageTitle) . ' - QueueFlow' : 'QueueFlow - Smart Queue & Appointment System'; ?></title>
     <link rel="stylesheet" href="<?php echo $baseUrl; ?>/assets/css/style.css">
 </head>
 <body>
@@ -43,20 +45,24 @@ $baseUrl = '/Queue_management_system';
                             <span class="brand-role-tag admin">Admin Portal</span>
                         <?php elseif ($user && $user['role'] === 'staff'): ?>
                             <span class="brand-role-tag staff">Staff Station</span>
+                        <?php elseif ($user && $user['role'] === 'user'): ?>
+                            <span class="brand-role-tag user" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">Citizen Portal</span>
                         <?php endif; ?>
                     </span>
                 </a>
 
-                <!-- User & Quick Action Area (Always neat and aligned on right) -->
+                <!-- User & Quick Action Area -->
                 <div class="top-nav-actions">
                     <?php if ($user): ?>
                         <!-- User Profile Badge -->
                         <div class="user-profile-badge">
-                            <span class="user-avatar-circle">
+                            <span class="user-avatar-circle" style="<?php echo ($user['role'] === 'user') ? 'background:#0284c7; color:#fff;' : ''; ?>">
                                 <?php echo strtoupper(substr($user['full_name'], 0, 1)); ?>
                             </span>
                             <span class="user-name"><?php echo e($user['full_name']); ?></span>
-                            <span class="user-role-tag <?php echo e($user['role']); ?>"><?php echo ucfirst(e($user['role'])); ?></span>
+                            <span class="user-role-tag <?php echo e($user['role']); ?>" style="<?php echo ($user['role'] === 'user') ? 'background:#e0f2fe; color:#0369a1;' : ''; ?>">
+                                <?php echo strtoupper(e($user['role'])); ?>
+                            </span>
                         </div>
 
                         <!-- Logout Button -->
@@ -64,15 +70,18 @@ $baseUrl = '/Queue_management_system';
                             <?php echo getIcon('log-out', 14); ?> <span>Logout</span>
                         </a>
                     <?php else: ?>
+                        <a href="<?php echo $baseUrl; ?>/register.php" class="btn btn-secondary btn-sm" style="margin-right: 0.5rem;">
+                            <?php echo getIcon('user-plus', 14); ?> <span>Register</span>
+                        </a>
                         <a href="<?php echo $baseUrl; ?>/login.php" class="btn btn-primary btn-sm">
-                            <?php echo getIcon('log-in', 14); ?> Staff / Admin Login
+                            <?php echo getIcon('log-in', 14); ?> <span>Sign In</span>
                         </a>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
 
-        <!-- Subnav Tab Bar: Dedicated navigation items with ample breathing room -->
+        <!-- Subnav Tab Bar -->
         <div class="subnav-bar">
             <div class="subnav-container">
                 <ul class="subnav-tabs">
@@ -84,13 +93,23 @@ $baseUrl = '/Queue_management_system';
                             </a>
                         </li>
                         <li>
-                            <a href="<?php echo $baseUrl; ?>/admin/staff.php" class="subnav-tab <?php echo ($currentPage === 'staff.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('users', 16); ?> <span>Staff Accounts</span>
+                            <a href="<?php echo $baseUrl; ?>/admin/services.php" class="subnav-tab <?php echo ($currentPage === 'services.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('briefcase', 16); ?> <span>Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/admin/appointments.php" class="subnav-tab <?php echo ($currentPage === 'appointments.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('calendar', 16); ?> <span>Appointments</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/admin/applications.php" class="subnav-tab <?php echo ($currentPage === 'applications.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('file-text', 16); ?> <span>Applications</span>
                             </a>
                         </li>
                         <li>
                             <a href="<?php echo $baseUrl; ?>/admin/counters.php" class="subnav-tab <?php echo ($currentPage === 'counters.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('counter', 16); ?> <span>Service Counters</span>
+                                <?php echo getIcon('counter', 16); ?> <span>Counters</span>
                             </a>
                         </li>
                         <li>
@@ -99,8 +118,56 @@ $baseUrl = '/Queue_management_system';
                             </a>
                         </li>
                         <li>
+                            <a href="<?php echo $baseUrl; ?>/admin/staff.php" class="subnav-tab <?php echo ($currentPage === 'staff.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('users', 16); ?> <span>Staff Accounts</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/admin/user_management.php" class="subnav-tab <?php echo ($currentPage === 'user_management.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('user', 16); ?> <span>Public Citizens</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="<?php echo $baseUrl; ?>/admin/history.php" class="subnav-tab <?php echo ($currentPage === 'history.php' && $inAdmin) ? 'active' : ''; ?>">
-                                <?php echo getIcon('history', 16); ?> <span>History & Reports</span>
+                                <?php echo getIcon('history', 16); ?> <span>Reports</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/admin/system_reset.php" class="subnav-tab <?php echo ($currentPage === 'system_reset.php') ? 'active' : ''; ?>" style="color: #0284c7; font-weight: 600;">
+                                <?php echo getIcon('beaker', 16); ?> <span>Demo Simulator</span>
+                            </a>
+                        </li>
+
+                    <?php elseif ($user && $user['role'] === 'user'): ?>
+                        <!-- Citizen User Subnav Tabs -->
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/user/dashboard.php" class="subnav-tab <?php echo ($currentPage === 'dashboard.php' && $inUser) ? 'active' : ''; ?>">
+                                <?php echo getIcon('dashboard', 16); ?> <span>My Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/user/book_appointment.php" class="subnav-tab <?php echo ($currentPage === 'book_appointment.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('calendar', 16); ?> <span>Book Appointment</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/user/checkin.php" class="subnav-tab <?php echo ($currentPage === 'checkin.php') ? 'active' : ''; ?>" style="color: #16a34a; font-weight: 600;">
+                                <?php echo getIcon('check-square', 16); ?> <span>Office Check-In</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/user/my_appointments.php" class="subnav-tab <?php echo ($currentPage === 'my_appointments.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('clock', 16); ?> <span>My Appointments</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/user/my_applications.php" class="subnav-tab <?php echo ($currentPage === 'my_applications.php' || $currentPage === 'new_application.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('file-text', 16); ?> <span>My Applications</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/display.php" target="_blank" class="subnav-tab">
+                                <?php echo getIcon('tv', 16); ?> <span>Live Display</span>
                             </a>
                         </li>
 
@@ -126,7 +193,7 @@ $baseUrl = '/Queue_management_system';
                         <!-- Customer Public Tabs -->
                         <li>
                             <a href="<?php echo $baseUrl; ?>/index.php" class="subnav-tab <?php echo ($currentPage === 'index.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('ticket', 16); ?> <span>Take a Ticket</span>
+                                <?php echo getIcon('ticket', 16); ?> <span>Walk-In Kiosk</span>
                             </a>
                         </li>
                         <li>
@@ -137,6 +204,11 @@ $baseUrl = '/Queue_management_system';
                         <li>
                             <a href="<?php echo $baseUrl; ?>/check_status.php" class="subnav-tab <?php echo ($currentPage === 'check_status.php') ? 'active' : ''; ?>">
                                 <?php echo getIcon('search', 16); ?> <span>Check Waiting Status</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo $baseUrl; ?>/register.php" class="subnav-tab <?php echo ($currentPage === 'register.php') ? 'active' : ''; ?>">
+                                <?php echo getIcon('user-plus', 16); ?> <span>Citizen Registration</span>
                             </a>
                         </li>
                     <?php endif; ?>

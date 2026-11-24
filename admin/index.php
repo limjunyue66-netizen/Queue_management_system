@@ -25,8 +25,11 @@ $servingCount = $pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('calli
 // Completed today
 $completedCount = $pdo->query("SELECT COUNT(*) FROM queues WHERE status = 'completed' AND DATE(created_at) = CURDATE()")->fetchColumn();
 
-// Skipped today
-$skippedCount = $pdo->query("SELECT COUNT(*) FROM queues WHERE status = 'skipped' AND DATE(created_at) = CURDATE()")->fetchColumn();
+// Today Appointments
+$appointmentsToday = $pdo->query("SELECT COUNT(*) FROM appointments WHERE appointment_date = CURDATE()")->fetchColumn();
+
+// Pending Applications
+$pendingAppsCount = $pdo->query("SELECT COUNT(*) FROM applications WHERE status IN ('submitted', 'under_review')")->fetchColumn();
 
 // Active counters
 $activeCountersCount = $pdo->query("SELECT COUNT(*) FROM counters WHERE status = 'open'")->fetchColumn();
@@ -48,7 +51,7 @@ $counterStatuses = $pdo->query("
     ORDER BY c.counter_number ASC
 ")->fetchAll();
 
-// Recent 5 Queues
+// Recent 6 Queues
 $recentQueues = $pdo->query("
     SELECT q.*, c.counter_number, u.full_name AS staff_name
     FROM queues q
@@ -61,99 +64,110 @@ $recentQueues = $pdo->query("
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-header">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div>
-        <h1 class="page-title"><?php echo getIcon('dashboard', 26); ?> Administrator Dashboard</h1>
-        <p class="page-desc">Comprehensive real-time overview of counters, staff, and customer queues</p>
+        <h1 style="font-size: 1.7rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.65rem;">
+            <?php echo getIcon('dashboard', 26); ?> Administrator Dashboard
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+            Real-time management for immigration counters, citizen appointments, and queue operations
+        </p>
     </div>
-    <div style="display: flex; gap: 0.5rem;">
-        <a href="history.php" class="btn btn-secondary">
-            <?php echo getIcon('history', 16); ?> View Reports & History
+    <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+        <a href="system_reset.php" class="btn btn-secondary" style="color: #0284c7; border-color: #bae6fd; background: #f0f9ff; font-weight: 700;">
+            <?php echo getIcon('beaker', 16); ?> Demo Simulation Tool
         </a>
-        <a href="../display.php" target="_blank" class="btn btn-outline">
+        <a href="history.php" class="btn btn-secondary">
+            <?php echo getIcon('history', 16); ?> View Reports
+        </a>
+        <a href="../display.php" target="_blank" class="btn btn-primary">
             <?php echo getIcon('tv', 16); ?> Open Live Display
         </a>
     </div>
 </div>
 
-<!-- Metrics Cards -->
-<div class="grid grid-4" style="margin-bottom: 2rem;">
-    <div class="stat-card">
-        <div class="stat-icon primary">
+<!-- 6 Metrics Cards -->
+<div class="grid grid-cols-4" style="margin-bottom: 2rem;">
+    <div class="metric-card">
+        <div class="metric-info">
+            <span class="metric-title">TOTAL TICKETS TODAY</span>
+            <span class="metric-number"><?php echo (int)$totalToday; ?></span>
+        </div>
+        <div class="metric-icon" style="background: #e0f2fe; color: #0284c7;">
             <?php echo getIcon('ticket', 24); ?>
         </div>
-        <div class="stat-content">
-            <div class="stat-label">Total Today</div>
-            <div class="stat-value"><?php echo (int)$totalToday; ?></div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">Issued tickets</small>
-        </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon warning">
+    <div class="metric-card">
+        <div class="metric-info">
+            <span class="metric-title">WAITING IN HALL</span>
+            <span class="metric-number" style="color: #d97706;"><?php echo (int)$waitingCount; ?></span>
+        </div>
+        <div class="metric-icon" style="background: #fef3c7; color: #d97706;">
             <?php echo getIcon('clock', 24); ?>
         </div>
-        <div class="stat-content">
-            <div class="stat-label">In Waiting Line</div>
-            <div class="stat-value" style="color: #d97706;"><?php echo (int)$waitingCount; ?></div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">Awaiting call</small>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-info">
+            <span class="metric-title">TODAY'S APPOINTMENTS</span>
+            <span class="metric-number" style="color: #6366f1;"><?php echo (int)$appointmentsToday; ?></span>
+        </div>
+        <div class="metric-icon" style="background: #e0e7ff; color: #6366f1;">
+            <?php echo getIcon('calendar', 24); ?>
         </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon purple">
-            <?php echo getIcon('play-circle', 24); ?>
+    <div class="metric-card">
+        <div class="metric-info">
+            <span class="metric-title">PENDING APPLICATIONS</span>
+            <span class="metric-number" style="color: #dc2626;"><?php echo (int)$pendingAppsCount; ?></span>
         </div>
-        <div class="stat-content">
-            <div class="stat-label">Currently Serving</div>
-            <div class="stat-value" style="color: #7c3aed;"><?php echo (int)$servingCount; ?></div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">At service counters</small>
-        </div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-icon success">
-            <?php echo getIcon('check-circle', 24); ?>
-        </div>
-        <div class="stat-content">
-            <div class="stat-label">Completed Today</div>
-            <div class="stat-value" style="color: #059669;"><?php echo (int)$completedCount; ?></div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;"><?php echo (int)$skippedCount; ?> skipped</small>
+        <div class="metric-icon" style="background: #fee2e2; color: #dc2626;">
+            <?php echo getIcon('file-text', 24); ?>
         </div>
     </div>
 </div>
 
-<!-- Counter Live Status & Quick Action -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title"><?php echo getIcon('counter', 20); ?> Live Counter Activity Status</h2>
-        <a href="counters.php" class="btn btn-sm btn-outline"><?php echo getIcon('edit', 14); ?> Manage Counters</a>
+<!-- Counter Live Status Grid -->
+<div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <?php echo getIcon('counter', 18, 'text-primary'); ?> Live Service Counter Stations
+        </h2>
+        <a href="counters.php" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">Manage Counters &rarr;</a>
     </div>
 
-    <div class="grid grid-4">
-        <?php foreach ($counterStatuses as $cnt): ?>
-            <div style="background: #ffffff; border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: var(--shadow-xs); transition: all 0.2s ease;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <strong style="font-size: 1.05rem; color: var(--slate-900);"><?php echo e($cnt['counter_number']); ?></strong>
-                    <?php echo renderStatusBadge($cnt['status']); ?>
-                </div>
-                <div style="font-size: 0.85rem; color: var(--slate-500); min-height: 38px; line-height: 1.35;"><?php echo e($cnt['counter_name']); ?></div>
+    <div class="grid grid-cols-4" style="gap: 1rem;">
+        <?php foreach ($counterStatuses as $c): ?>
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; background: <?php echo ($c['status'] === 'open') ? '#fff' : '#f8fafc'; ?>; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong style="color: #0f172a; font-size: 1.05rem;"><?php echo e($c['counter_number']); ?></strong>
+                        <?php echo renderStatusBadge($c['status']); ?>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 1rem;">
+                        <?php echo e($c['counter_name']); ?>
+                    </div>
 
-                <div style="margin: 0.85rem 0; padding: 0.75rem; background: var(--slate-50); border-radius: var(--radius-sm); border: 1px solid var(--slate-200); text-align: center;">
-                    <?php if ($cnt['status'] === 'open' && $cnt['queue_number']): ?>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #2563eb; letter-spacing: 0.5px;"><?php echo e($cnt['queue_number']); ?></div>
-                        <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;"><?php echo renderStatusBadge($cnt['queue_status']); ?></div>
-                    <?php elseif ($cnt['status'] === 'open'): ?>
-                        <div style="color: #94a3b8; font-weight: 600; font-size: 1.05rem;">Idle (Ready)</div>
-                        <small style="color: #cbd5e1; font-size: 0.75rem;">Waiting for call</small>
+                    <?php if ($c['queue_number']): ?>
+                        <div style="background: #eff6ff; border-radius: 8px; padding: 0.75rem; text-align: center; margin-bottom: 0.75rem;">
+                            <span style="font-size: 0.75rem; color: #1e40af; font-weight: 700;">CURRENT TICKET</span>
+                            <div style="font-size: 1.8rem; font-weight: 900; color: #1d4ed8; letter-spacing: 1px;">
+                                <?php echo e($c['queue_number']); ?>
+                            </div>
+                            <small style="color: #64748b;"><?php echo e($c['customer_name']); ?></small>
+                        </div>
                     <?php else: ?>
-                        <div style="color: #cbd5e1; font-weight: 600; font-size: 1.05rem;">Offline</div>
-                        <small style="color: #e2e8f0; font-size: 0.75rem;">Closed</small>
+                        <div style="background: #f1f5f9; border-radius: 8px; padding: 0.75rem; text-align: center; margin-bottom: 0.75rem; color: #94a3b8; font-size: 0.85rem;">
+                            Idle / No active customer
+                        </div>
                     <?php endif; ?>
                 </div>
 
-                <div style="font-size: 0.82rem; color: var(--slate-600); border-top: 1px dashed var(--slate-200); padding-top: 0.65rem;">
-                    Assigned: <strong><?php echo !empty($cnt['staff_name']) ? e($cnt['staff_name']) : '<span style="color:#94a3b8;">Unassigned</span>'; ?></strong>
+                <div style="font-size: 0.8rem; color: #475569; border-top: 1px solid #f1f5f9; padding-top: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <?php echo getIcon('user', 14); ?> 
+                    <span>Staff: <strong><?php echo $c['staff_name'] ? e($c['staff_name']) : '<span style="color:#94a3b8;">Unassigned</span>'; ?></strong></span>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -161,40 +175,55 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- Recent Queue Activity -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title"><?php echo getIcon('list', 20); ?> Recent Queue Activity</h2>
-        <a href="queues.php" class="btn btn-sm btn-primary"><?php echo getIcon('list', 14); ?> View All Queues</a>
+<div class="card" style="padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <?php echo getIcon('list', 18, 'text-primary'); ?> Recent Queue Activity
+        </h2>
+        <a href="queues.php" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">View All &rarr;</a>
     </div>
 
     <div class="table-responsive">
-        <table class="table">
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th>Queue No</th>
-                    <th>Customer Name</th>
-                    <th>Service Type</th>
-                    <th>Status</th>
-                    <th>Counter</th>
-                    <th>Staff</th>
-                    <th>Time Created</th>
+                    <th>TICKET NUMBER</th>
+                    <th>CUSTOMER NAME & IC</th>
+                    <th>SERVICE TYPE</th>
+                    <th>TYPE</th>
+                    <th>STATION</th>
+                    <th>STATUS</th>
+                    <th>ISSUED AT</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($recentQueues)): ?>
                     <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No queues recorded yet today.</td>
+                        <td colspan="7" style="text-align: center; padding: 2.5rem 1rem; color: #94a3b8;">
+                            No queue tickets issued yet.
+                        </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($recentQueues as $q): ?>
                         <tr>
-                            <td><strong style="color: #1d4ed8;"><?php echo e($q['queue_number']); ?></strong></td>
-                            <td><?php echo e($q['customer_name']); ?></td>
+                            <td>
+                                <strong style="color: #0284c7; font-size: 1.1rem;"><?php echo e($q['queue_number']); ?></strong>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; color: #1e293b;"><?php echo e($q['customer_name']); ?></div>
+                                <?php if (!empty($q['customer_ic'])): ?>
+                                    <small style="color: #64748b;"><?php echo e($q['customer_ic']); ?></small>
+                                <?php endif; ?>
+                            </td>
                             <td><?php echo e($q['service_type']); ?></td>
+                            <td>
+                                <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 12px; background: <?php echo ($q['customer_type'] === 'appointment') ? '#e0e7ff; color: #4338ca;' : '#f1f5f9; color: #475569;'; ?>">
+                                    <?php echo ($q['customer_type'] === 'appointment') ? 'Appointment' : 'Walk-in'; ?>
+                                </span>
+                            </td>
+                            <td><?php echo $q['counter_number'] ? e($q['counter_number']) : '<span style="color:#94a3b8;">-</span>'; ?></td>
                             <td><?php echo renderStatusBadge($q['status']); ?></td>
-                            <td><?php echo e($q['counter_number'] ?: '-'); ?></td>
-                            <td><?php echo e($q['staff_name'] ?: '-'); ?></td>
-                            <td><?php echo formatTimeOnly($q['created_at']); ?></td>
+                            <td><?php echo date('h:i A', strtotime($q['created_at'])); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
