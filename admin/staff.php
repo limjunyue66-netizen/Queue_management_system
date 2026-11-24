@@ -75,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch all admin and staff accounts (exclude citizen users)
-$users = $pdo->query("SELECT * FROM users WHERE role IN ('admin', 'staff') ORDER BY role ASC, id ASC")->fetchAll();
+// Fetch all staff accounts only (strictly exclude admin and citizen users)
+$users = $pdo->query("SELECT * FROM users WHERE role = 'staff' ORDER BY id ASC")->fetchAll();
 
 // Check if editing a specific user
 $editUser = null;
@@ -144,8 +144,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="form-col form-group">
                     <label class="form-label" for="role">User Role</label>
                     <select id="role" name="role" class="form-control" required>
-                        <option value="staff" <?php echo ($editUser && $editUser['role'] === 'staff') ? 'selected' : ''; ?>>Staff Member</option>
-                        <option value="admin" <?php echo ($editUser && $editUser['role'] === 'admin') ? 'selected' : ''; ?>>Administrator</option>
+                        <option value="staff" selected>Staff Member</option>
                     </select>
                 </div>
 
@@ -169,8 +168,8 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Staff List Table -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title"><?php echo getIcon('users', 18); ?> Existing Staff & Admins</h2>
-            <span class="badge badge-serving"><?php echo count($users); ?> Total Users</span>
+            <h2 class="card-title"><?php echo getIcon('users', 18); ?> Existing Service Staff</h2>
+            <span class="badge badge-open"><?php echo count($users); ?> Staff Members</span>
         </div>
 
         <div class="table-responsive">
