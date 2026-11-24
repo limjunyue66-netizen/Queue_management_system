@@ -7,7 +7,7 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
 $pdo = getDBConnection();
-$queueNumber = strtoupper(trim($_GET['ticket'] ?? $_GET['queue_number'] ?? ''));
+$queueNumber = strtoupper(trim($_GET['ticket'] ?? ($_GET['queue_number'] ?? ($_GET['num'] ?? ''))));
 
 // Initial fetch for server-side rendering (most recent record for this ticket)
 $queue = null;

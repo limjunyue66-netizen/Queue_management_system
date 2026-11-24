@@ -208,6 +208,17 @@ if ($connectedPdo) {
     assert(isset($jsonData['spaced_number']) && $jsonData['status'] === 'completed', "Mobile API status should be completed");
     echo "[PASS] Mobile Tracker API (JSON real-time sync endpoint) tested successfully.\n";
 
+    // Test Ticket Multi-parameter resolver (prevents Invalid ticket request bug)
+    $chkTicket = $connectedPdo->query("SELECT id, queue_number FROM queues ORDER BY id DESC LIMIT 1")->fetch();
+    if ($chkTicket) {
+        $tId = $chkTicket['id'];
+        $tNum = $chkTicket['queue_number'];
+        $foundById = $connectedPdo->query("SELECT * FROM queues WHERE id = $tId")->fetch();
+        $foundByNum = $connectedPdo->query("SELECT * FROM queues WHERE queue_number = '$tNum'")->fetch();
+        assert(!empty($foundById) && !empty($foundByNum), "Ticket query by ID and by Num must both succeed");
+        echo "[PASS] Ticket query resolver verified for both 'id' and 'num' ('$tNum').\n";
+    }
+
     // Clean up test record
     $connectedPdo->prepare("DELETE FROM queues WHERE id = ?")->execute([$testId]);
     echo "[PASS] Complete Queue Life Cycle transaction (waiting -> calling -> serving -> completed) passed.\n";

@@ -154,7 +154,7 @@ require_once __DIR__ . '/../includes/header.php';
             <a href="../mobile_tracker.php?ticket=<?php echo urlencode($currentTicket['queue_number']); ?>" target="_blank" class="btn btn-primary btn-sm">
                 <?php echo getIcon('smartphone', 16); ?> Open Live Tracker
             </a>
-            <a href="../ticket.php?num=<?php echo urlencode($currentTicket['queue_number']); ?>" target="_blank" class="btn btn-secondary btn-sm">
+            <a href="../ticket.php?id=<?php echo (int)$currentTicket['id']; ?>&num=<?php echo urlencode($currentTicket['queue_number']); ?>" target="_blank" class="btn btn-secondary btn-sm">
                 <?php echo getIcon('printer', 16); ?> Print Ticket
             </a>
         </div>

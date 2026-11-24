@@ -9,7 +9,7 @@ require_once __DIR__ . '/includes/functions.php';
 $pdo = getDBConnection();
 $pageTitle = 'Check Queue Status';
 
-$searchQuery = strtoupper(trim($_GET['queue_number'] ?? ''));
+$searchQuery = strtoupper(trim($_GET['queue_number'] ?? ($_GET['num'] ?? ($_GET['ticket'] ?? ''))));
 $queueRecord = null;
 $aheadCount = 0;
 $estimatedWait = 0;

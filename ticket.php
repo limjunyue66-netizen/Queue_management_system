@@ -10,16 +10,30 @@ $pdo = getDBConnection();
 $pageTitle = 'Your Queue Ticket';
 
 $ticketId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-if ($ticketId <= 0) {
-    setFlash('error', 'Invalid ticket request.');
-    header("Location: index.php");
-    exit;
-}
+$queueNum = strtoupper(trim($_GET['num'] ?? ($_GET['queue_number'] ?? ($_GET['ticket'] ?? ''))));
 
-// Fetch ticket details
-$stmt = $pdo->prepare("SELECT * FROM queues WHERE id = ?");
-$stmt->execute([$ticketId]);
-$ticket = $stmt->fetch();
+$ticket = null;
+if ($ticketId > 0) {
+    $stmt = $pdo->prepare("SELECT * FROM queues WHERE id = ?");
+    $stmt->execute([$ticketId]);
+    $ticket = $stmt->fetch();
+} elseif (!empty($queueNum)) {
+    $stmt = $pdo->prepare("SELECT * FROM queues WHERE queue_number = ? ORDER BY id DESC LIMIT 1");
+    $stmt->execute([$queueNum]);
+    $ticket = $stmt->fetch();
+} else {
+    // If no explicit ticket ID/num given, check if current logged in user has an active queue today
+    $currentUser = currentUser();
+    if ($currentUser) {
+        $stmt = $pdo->prepare("
+            SELECT * FROM queues 
+            WHERE user_id = ? AND status IN ('waiting', 'calling', 'serving', 'completed') AND DATE(created_at) = CURDATE()
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->execute([$currentUser['id']]);
+        $ticket = $stmt->fetch();
+    }
+}
 
 if (!$ticket) {
     setFlash('error', 'Ticket record not found.');

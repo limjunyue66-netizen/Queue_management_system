@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkin_appointment_i
 }
 
 // Check if user already checked in today
-$checkedInTicket = $_GET['ticket'] ?? '';
+$checkedInTicket = trim($_GET['ticket'] ?? ($_GET['num'] ?? ($_GET['queue_number'] ?? '')));
 $activeQueue = null;
 
 if (!empty($checkedInTicket)) {
@@ -225,7 +225,7 @@ require_once __DIR__ . '/../includes/header.php';
 
             <!-- Two Action Buttons -->
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="../ticket.php?num=<?php echo urlencode($activeQueue['queue_number']); ?>" target="_blank" class="btn btn-secondary" style="padding: 0.85rem 1.75rem; font-weight: 700;">
+                <a href="../ticket.php?id=<?php echo (int)$activeQueue['id']; ?>&num=<?php echo urlencode($activeQueue['queue_number']); ?>" target="_blank" class="btn btn-secondary" style="padding: 0.85rem 1.75rem; font-weight: 700;">
                     <?php echo getIcon('printer', 18); ?> Print Ticket Slip
                 </a>
                 <a href="../mobile_tracker.php?ticket=<?php echo urlencode($activeQueue['queue_number']); ?>" target="_blank" class="btn btn-primary" style="padding: 0.85rem 1.75rem; font-weight: 700;">
