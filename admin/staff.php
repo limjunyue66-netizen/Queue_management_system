@@ -75,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch all users
-$users = $pdo->query("SELECT * FROM users ORDER BY role ASC, id ASC")->fetchAll();
+// Fetch all admin and staff accounts (exclude citizen users)
+$users = $pdo->query("SELECT * FROM users WHERE role IN ('admin', 'staff') ORDER BY role ASC, id ASC")->fetchAll();
 
 // Check if editing a specific user
 $editUser = null;
@@ -93,11 +93,11 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="page-header">
     <div>
         <h1 class="page-title"><?php echo getIcon('users', 26); ?> Staff Account Management</h1>
-        <p class="page-desc">Create, manage, and configure staff login accounts and system permissions</p>
+        <p class="page-desc">Configure official service staff accounts (1 Staff assigned per Counter Station)</p>
     </div>
 </div>
 
-<div class="grid grid-2" style="align-items: start;">
+<div class="staff-layout" style="display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 1.5rem; align-items: start;">
     <!-- Add or Edit Form -->
     <div class="card">
         <div class="card-header">

@@ -162,7 +162,7 @@ require_once __DIR__ . '/includes/header.php';
                 <strong>Admin:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">admin</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">admin123</code>
             </div>
             <div style="color: #475569; margin-bottom: 0.2rem;">
-                <strong>Staff:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff1</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff123</code>
+                <strong>Staff (Counters 1-4):</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff1</code> to <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff4</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff123</code>
             </div>
             <div style="color: #475569;">
                 <strong>Public User:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">user</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">user123</code>

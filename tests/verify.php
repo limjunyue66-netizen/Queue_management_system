@@ -135,22 +135,24 @@ if ($connectedPdo) {
     // Switch to queue_db
     $connectedPdo->exec("USE `queue_db`");
 
-    // Test Users table seed
+    // Test Users table seed (1 Admin + 4 Staff + 1 Citizen = 6 users)
     $stmt = $connectedPdo->query("SELECT COUNT(*) FROM users");
     $userCount = $stmt->fetchColumn();
-    assert($userCount >= 4, "Users seed data count check failed");
-    echo "[PASS] Users seed data verified ($userCount users found in database).\n";
+    $staffCount = $connectedPdo->query("SELECT COUNT(*) FROM users WHERE role = 'staff'")->fetchColumn();
+    assert($userCount >= 6, "Users seed data count check failed");
+    assert((int)$staffCount === 4, "Must have exactly 4 staff accounts for 4 counters");
+    echo "[PASS] Users seed data verified ($userCount total users, exactly $staffCount staff for 4 counters).\n";
 
-    // Test Services catalog seed
+    // Test Services catalog seed (Exactly 4 Services)
     $services = getAllServices($connectedPdo, true);
-    assert(count($services) >= 5, "Services catalog count check failed");
-    echo "[PASS] Services catalog verified (" . count($services) . " services loaded).\n";
+    assert(count($services) === 4, "Services catalog should have exactly 4 services");
+    echo "[PASS] Services catalog verified (" . count($services) . " services loaded, 1:1 with 4 counters).\n";
 
-    // Test Counters table seed
-    $stmt = $connectedPdo->query("SELECT COUNT(*) FROM counters");
-    $counterCount = $stmt->fetchColumn();
-    assert($counterCount >= 4, "Counters seed data count check failed");
-    echo "[PASS] Counters seed data verified ($counterCount counters found in database).\n";
+    // Test Counters table seed (Exactly 4 Counters, each assigned with dedicated staff)
+    $stmt = $connectedPdo->query("SELECT COUNT(*) FROM counters WHERE current_staff_id IS NOT NULL");
+    $assignedCounterCount = $stmt->fetchColumn();
+    assert((int)$assignedCounterCount === 4, "All 4 counters must have an assigned staff member");
+    echo "[PASS] Counters seed data verified (4 counters found, all 4 mapped 1:1 with staff).\n";
 
     // Test Appointment reference & slot calculation
     $appRef = generateAppointmentRef($connectedPdo);

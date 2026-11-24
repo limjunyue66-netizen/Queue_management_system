@@ -134,40 +134,41 @@ CREATE TABLE `queues` (
 -- Seed Standard Seed Data
 -- ---------------------------------------------------
 
--- 1. Users (Admin, Staff 1, Staff 2, Public User)
+-- 1. Users (Admin, Staff 1-4, Public User)
 -- Passwords:
 -- admin: admin123
--- staff1, staff2: staff123
+-- staff1, staff2, staff3, staff4: staff123
 -- user: user123
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `full_name`, `ic_passport`, `phone`, `role`, `status`) VALUES
 (1, 'admin', 'admin@example.com', '$2y$10$I.ku/e7JCufLz9qjjrQQRONXZNMSlrvgrkby0Uwx7V9GmWxBjt6tm', 'System Administrator', 'A00000000', '+60 12-000 0000', 'admin', 'active'),
 (2, 'staff1', 'staff1@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Staff Nurul Izzati', 'S11111111', '+60 13-111 2222', 'staff', 'active'),
 (3, 'staff2', 'staff2@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Michael Chen', 'S22222222', '+60 14-333 4444', 'staff', 'active'),
-(4, 'user', 'user@example.com', '$2y$10$nkGliQL3p2hzRgyr0rxBpucRFisLyCK64eW2wTEKgkhbnbAzylePm', 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'user', 'active');
+(4, 'staff3', 'staff3@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Siti Sarah', 'S33333333', '+60 15-555 6666', 'staff', 'active'),
+(5, 'staff4', 'staff4@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'David Wong', 'S44444444', '+60 16-777 8888', 'staff', 'active'),
+(6, 'user', 'user@example.com', '$2y$10$nkGliQL3p2hzRgyr0rxBpucRFisLyCK64eW2wTEKgkhbnbAzylePm', 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'user', 'active');
 
--- 2. Services Catalog
+-- 2. Services Catalog (Exactly 4 Services, 1:1 with 4 Counters)
 INSERT INTO `services` (`id`, `code`, `name`, `description`, `est_duration`, `status`) VALUES
-(1, 'PR', 'Passport Renewal', 'Standard renewal for Malaysian international passport (e-Passport).', 15, 'active'),
-(2, 'PA', 'Passport Application', 'New issuance of passport for first-time applicants or replacements.', 30, 'active'),
-(3, 'VA', 'Visa Application', 'Long-term social visit pass, student pass, and entry visa processing.', 25, 'active'),
-(4, 'WP', 'Work Permit', 'Employment pass and temporary employment visit pass renewal.', 20, 'active'),
-(5, 'IE', 'Immigration Enquiry', 'General inquiries, special passes, compound settlement, and advisory.', 10, 'active');
+(1, 'PS', 'Passport Services', 'Comprehensive passport renewal, first-time application, and document collection.', 20, 'active'),
+(2, 'VA', 'Visa Application', 'Long-term social visit pass, student pass, and entry visa processing.', 25, 'active'),
+(3, 'WP', 'Work Permit', 'Employment pass and temporary employment visit pass renewal.', 20, 'active'),
+(4, 'IE', 'Immigration Enquiry', 'General inquiries, special passes, compound settlement, and advisory.', 15, 'active');
 
--- 3. Counters
+-- 3. Counters (Exactly 4 Counters, 1:1 with 4 Staff and 4 Services)
 INSERT INTO `counters` (`id`, `counter_number`, `counter_name`, `status`, `current_staff_id`, `designated_service_id`) VALUES
 (1, 'Counter 01', 'Passport Renewal & Issuance', 'open', 2, 1),
-(2, 'Counter 02', 'Visa & Expatriate Services', 'open', 3, 3),
-(3, 'Counter 03', 'Work Permit Endorsement', 'open', NULL, 4),
-(4, 'Counter 04', 'Enquiry & Special Cases', 'open', NULL, 5);
+(2, 'Counter 02', 'Visa & Expatriate Services', 'open', 3, 2),
+(3, 'Counter 03', 'Work Permit Endorsement', 'open', 4, 3),
+(4, 'Counter 04', 'Enquiry & Special Advisory', 'open', 5, 4);
 
 -- 4. Sample Citizen Appointments
 INSERT INTO `appointments` (`id`, `appointment_ref`, `user_id`, `service_id`, `appointment_date`, `time_slot`, `remarks`, `status`) VALUES
-(1, 'APP-20261124-0001', 4, 1, CURDATE(), '08:30 - 09:30', 'Routine renewal before international travel', 'confirmed'),
-(2, 'APP-20261124-0002', 4, 2, CURDATE(), '09:30 - 10:30', 'First time passport issue', 'confirmed'),
-(3, 'APP-20261125-0003', 4, 3, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '10:30 - 11:30', 'Social visit visa inquiry', 'confirmed');
+(1, 'APP-20261124-0001', 6, 1, CURDATE(), '08:30 - 09:30', 'Routine renewal before international travel', 'confirmed'),
+(2, 'APP-20261124-0002', 6, 2, CURDATE(), '09:30 - 10:30', 'First time passport issue', 'confirmed'),
+(3, 'APP-20261125-0003', 6, 2, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '10:30 - 11:30', 'Social visit visa inquiry', 'confirmed');
 
 -- 5. Sample Citizen Applications
 INSERT INTO `applications` (`id`, `application_ref`, `user_id`, `service_id`, `applicant_name`, `applicant_ic`, `applicant_phone`, `status`, `remarks`, `submitted_date`) VALUES
-(1, 'IMP-20261121-1001', 4, 1, 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'approved', 'Documents verified online. Proceed to counter with appointment.', DATE_SUB(CURDATE(), INTERVAL 3 DAY)),
-(2, 'IMP-20261121-1002', 4, 2, 'Siti Sarah binti Kassim', '950612-10-8890', '+60 19-876 5432', 'submitted', 'Awaiting counter verification.', DATE_SUB(CURDATE(), INTERVAL 2 DAY)),
-(3, 'IMP-20261119-1003', 4, 3, 'John Tan Wei Lun', '881123-08-3345', '+60 16-555 7788', 'approved', 'Visa entry documents confirmed.', DATE_SUB(CURDATE(), INTERVAL 5 DAY));
+(1, 'IMP-20261121-1001', 6, 1, 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'approved', 'Documents verified online. Proceed to counter with appointment.', DATE_SUB(CURDATE(), INTERVAL 3 DAY)),
+(2, 'IMP-20261121-1002', 6, 2, 'Siti Sarah binti Kassim', '950612-10-8890', '+60 19-876 5432', 'submitted', 'Awaiting counter verification.', DATE_SUB(CURDATE(), INTERVAL 2 DAY)),
+(3, 'IMP-20261119-1003', 6, 2, 'John Tan Wei Lun', '881123-08-3345', '+60 16-555 7788', 'approved', 'Visa entry documents confirmed.', DATE_SUB(CURDATE(), INTERVAL 5 DAY));

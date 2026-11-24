@@ -127,6 +127,7 @@ function generateApplicationRef($pdo) {
  */
 function generateNextQueueNumber($pdo, $serviceType = 'General Service') {
     $prefixMap = [
+        'Passport Services'     => 'A',
         'Passport Renewal'      => 'A',
         'Passport Application'  => 'A',
         'Visa Application'      => 'B',
@@ -202,16 +203,16 @@ function getCounterDesignatedServices($counterNumber, $counterName = '') {
 
     // Number-based matching takes primary priority
     if (preg_match('/(^|\D)4($|\D)/', $num)) {
-        return ['Priority Service', 'Immigration Enquiry', 'Priority & Express Services'];
+        return ['Immigration Enquiry', 'Priority Service', 'Priority & Express Services'];
     }
     if (preg_match('/(^|\D)3($|\D)/', $num)) {
-        return ['Customer Support', 'Work Permit', 'Customer Support & Documentation'];
+        return ['Work Permit', 'Customer Support', 'Customer Support & Documentation'];
     }
     if (preg_match('/(^|\D)2($|\D)/', $num)) {
-        return ['Payment & Billing', 'Visa Application', 'Payment & Billing Services'];
+        return ['Visa Application', 'Payment & Billing', 'Payment & Billing Services'];
     }
     if (preg_match('/(^|\D)1($|\D)/', $num)) {
-        return ['General Service', 'Passport Renewal', 'Passport Application', 'General Enquiries & Registration'];
+        return ['Passport Services', 'Passport Renewal', 'Passport Application', 'General Service', 'General Enquiries & Registration'];
     }
 
     // Name-based matching if counter number is not specified
