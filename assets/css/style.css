@@ -1005,6 +1005,18 @@ a:hover {
   cursor: not-allowed;
 }
 
+/* Compact Table inside Dashboard Dual-column Cards (Zero Overflow) */
+.dashboard-table th {
+  padding: 0.75rem 0.55rem !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.3px !important;
+}
+.dashboard-table td {
+  padding: 0.85rem 0.55rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.35 !important;
+}
+
 /* Footer */
 .footer {
   background: #ffffff;

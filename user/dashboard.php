@@ -170,9 +170,9 @@ require_once __DIR__ . '/../includes/header.php';
 <?php endif; ?>
 
 <!-- Dual Layout: Upcoming Appointments (Left) & Recent Applications (Right) -->
-<div style="display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 1.5rem; align-items: start;">
+<div style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr); gap: 1.5rem; align-items: start;">
     <!-- Left Column: Upcoming Appointments Card -->
-    <div class="card" style="padding: 1.5rem; border: 1.5px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);">
+    <div class="card" style="padding: 1.5rem; border: 1.5px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04); overflow: hidden;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                 <?php echo getIcon('calendar', 18, 'text-primary'); ?> Upcoming Appointments
@@ -187,42 +187,44 @@ require_once __DIR__ . '/../includes/header.php';
                 <a href="book_appointment.php" class="btn btn-primary btn-sm">Book Your First Visit</a>
             </div>
         <?php else: ?>
-            <div class="table-responsive" style="overflow-x: auto;">
-                <table class="data-table" style="width: 100%;">
+            <div style="width: 100%; overflow-x: auto;">
+                <table class="data-table dashboard-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th style="width: 26%;">REFERENCE</th>
-                            <th style="width: 25%;">SERVICE</th>
-                            <th style="width: 25%;">DATE &amp; SLOT</th>
-                            <th style="width: 12%;">STATUS</th>
-                            <th style="width: 12%; text-align: right;">ACTION</th>
+                            <th style="width: 26%; padding: 0.75rem 0.55rem; font-size: 0.78rem;">REFERENCE</th>
+                            <th style="width: 25%; padding: 0.75rem 0.55rem; font-size: 0.78rem;">SERVICE</th>
+                            <th style="width: 25%; padding: 0.75rem 0.55rem; font-size: 0.78rem;">DATE &amp; SLOT</th>
+                            <th style="width: 12%; padding: 0.75rem 0.4rem; font-size: 0.78rem; text-align: center;">STATUS</th>
+                            <th style="width: 12%; padding: 0.75rem 0.55rem; font-size: 0.78rem; text-align: right;">ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($recentAppointments as $app): ?>
                             <tr>
-                                <td>
-                                    <strong style="color: #0284c7; font-size: 0.95rem; font-weight: 800; letter-spacing: 0.3px;">
+                                <td style="padding: 0.85rem 0.55rem;">
+                                    <strong style="color: #0284c7; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.2px; white-space: nowrap;">
                                         <?php echo e($app['appointment_ref']); ?>
                                     </strong>
                                 </td>
-                                <td>
-                                    <strong style="color: #0f172a; font-size: 0.93rem;"><?php echo e($app['service_name']); ?></strong>
+                                <td style="padding: 0.85rem 0.55rem;">
+                                    <strong style="color: #0f172a; font-size: 0.88rem;"><?php echo e($app['service_name']); ?></strong>
                                 </td>
-                                <td>
-                                    <div style="font-weight: 700; font-size: 0.92rem; color: #0f172a;">
+                                <td style="padding: 0.85rem 0.55rem;">
+                                    <div style="font-weight: 700; font-size: 0.86rem; color: #0f172a; white-space: nowrap;">
                                         <?php echo date('d M Y', strtotime($app['appointment_date'])); ?>
                                     </div>
-                                    <div class="cell-sub"><?php echo e($app['time_slot']); ?></div>
+                                    <div class="cell-sub" style="font-size: 0.78rem; white-space: nowrap; margin-top: 0.15rem;"><?php echo e($app['time_slot']); ?></div>
                                 </td>
-                                <td><?php echo renderStatusBadge($app['status']); ?></td>
-                                <td style="text-align: right;">
+                                <td style="padding: 0.85rem 0.4rem; text-align: center; white-space: nowrap;">
+                                    <?php echo renderStatusBadge($app['status']); ?>
+                                </td>
+                                <td style="padding: 0.85rem 0.55rem; text-align: right; white-space: nowrap;">
                                     <?php if ($app['appointment_date'] === date('Y-m-d') && $app['status'] === 'confirmed'): ?>
-                                        <a href="checkin.php" class="btn btn-sm" style="background: #16a34a; color: #fff; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700;">
+                                        <a href="checkin.php" class="btn btn-sm" style="background: #16a34a; color: #fff; padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700;">
                                             Check In
                                         </a>
                                     <?php else: ?>
-                                        <a href="my_appointments.php" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                                        <a href="my_appointments.php" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;">
                                             Details
                                         </a>
                                     <?php endif; ?>
