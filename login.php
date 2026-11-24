@@ -155,7 +155,21 @@ require_once __DIR__ . '/includes/header.php';
             </form>
         </div>
 
-        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.88rem; color: #64748b;">
+        <!-- Default Demo Credentials Box -->
+        <div style="margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem 1.25rem; font-size: 0.88rem; line-height: 1.6; text-align: left;">
+            <div style="font-weight: 700; color: #1e293b; margin-bottom: 0.35rem;">Default Demo Credentials:</div>
+            <div style="color: #475569; margin-bottom: 0.2rem;">
+                <strong>Admin:</strong> <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">admin</code> / <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">admin123</code>
+            </div>
+            <div style="color: #475569; margin-bottom: 0.2rem;">
+                <strong>Staff:</strong> <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">staff1</code> / <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">staff123</code>
+            </div>
+            <div style="color: #475569;">
+                <strong>Public User:</strong> <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">user</code> / <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">user123</code>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; text-align: center; font-size: 0.88rem; color: #64748b;">
             Don't have an account yet? 
             <a href="register.php" style="color: var(--primary); font-weight: 600; text-decoration: none;">Register Here</a>
         </div>
