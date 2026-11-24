@@ -38,26 +38,24 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM applications WHERE user_id = ?");
 $stmt->execute([$userId]);
 $totalApplications = (int)$stmt->fetchColumn();
 
-// 2. Fetch Upcoming Appointments
+// 2. Fetch Upcoming Appointments (Display all active/recent)
 $stmt = $pdo->prepare("
     SELECT a.*, s.name as service_name 
     FROM appointments a 
     JOIN services s ON a.service_id = s.id 
     WHERE a.user_id = ? 
-    ORDER BY a.appointment_date DESC, a.time_slot ASC 
-    LIMIT 5
+    ORDER BY a.appointment_date DESC, a.time_slot ASC
 ");
 $stmt->execute([$userId]);
 $recentAppointments = $stmt->fetchAll();
 
-// 3. Fetch Recent Applications
+// 3. Fetch Recent Applications (Display all)
 $stmt = $pdo->prepare("
     SELECT app.*, s.name as service_name 
     FROM applications app 
     JOIN services s ON app.service_id = s.id 
     WHERE app.user_id = ? 
-    ORDER BY app.id DESC 
-    LIMIT 5
+    ORDER BY app.id DESC
 ");
 $stmt->execute([$userId]);
 $recentApplications = $stmt->fetchAll();
@@ -177,7 +175,6 @@ require_once __DIR__ . '/../includes/header.php';
             <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                 <?php echo getIcon('calendar', 18, 'text-primary'); ?> Upcoming Appointments
             </h2>
-            <a href="my_appointments.php" style="font-size: 0.85rem; color: var(--primary); font-weight: 700; text-decoration: none;">View All &rarr;</a>
         </div>
 
         <?php if (empty($recentAppointments)): ?>
@@ -243,7 +240,6 @@ require_once __DIR__ . '/../includes/header.php';
             <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                 <?php echo getIcon('file-text', 18, 'text-primary'); ?> Recent Applications
             </h2>
-            <a href="my_applications.php" style="font-size: 0.85rem; color: var(--primary); font-weight: 700; text-decoration: none;">View All &rarr;</a>
         </div>
 
         <?php if (empty($recentApplications)): ?>
