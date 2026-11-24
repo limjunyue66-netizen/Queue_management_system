@@ -27,15 +27,26 @@ if ($ticketId > 0) {
     if ($currentUser) {
         $stmt = $pdo->prepare("
             SELECT * FROM queues 
-            WHERE user_id = ? AND status IN ('waiting', 'calling', 'serving', 'completed') AND DATE(created_at) = CURDATE()
+            WHERE (customer_name = ? OR customer_ic = ?) 
+              AND status IN ('waiting', 'calling', 'serving', 'completed') 
+              AND DATE(created_at) = CURDATE()
             ORDER BY id DESC LIMIT 1
         ");
-        $stmt->execute([$currentUser['id']]);
+        $stmt->execute([
+            $currentUser['full_name'] ?? '',
+            $currentUser['ic_passport'] ?? ''
+        ]);
         $ticket = $stmt->fetch();
     }
 }
 
 if (!$ticket) {
+    $currentUser = currentUser();
+    if ($currentUser && $currentUser['role'] === 'user') {
+        setFlash('info', 'No active queue ticket found for today.');
+        header("Location: user/dashboard.php");
+        exit;
+    }
     setFlash('error', 'Ticket record not found.');
     header("Location: index.php");
     exit;

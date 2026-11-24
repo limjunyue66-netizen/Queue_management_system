@@ -1,192 +1,177 @@
 <?php
 // ===================================================
-// Customer Ticket Kiosk / Home Page
+// QueueFlow Main Landing Page: Authentication & Portal Sign In
+// Supports Admin, Staff, and Citizen Portals
 // ===================================================
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
-$pdo = getDBConnection();
-$pageTitle = 'Take a Queue Number';
+// If already logged in, redirect immediately to respective dashboard
+if (isLoggedIn()) {
+    $user = currentUser();
+    if ($user['role'] === 'admin') {
+        header("Location: /Queue_management_system/admin/index.php");
+    } elseif ($user['role'] === 'staff') {
+        header("Location: /Queue_management_system/staff/index.php");
+    } else {
+        header("Location: /Queue_management_system/user/dashboard.php");
+    }
+    exit;
+}
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'generate_ticket') {
-    $customerName = trim($_POST['customer_name'] ?? '');
-    $serviceType = trim($_POST['service_type'] ?? 'General Service');
+$error = '';
+$usernameVal = '';
 
-    if (empty($customerName)) {
-        $customerName = 'Guest Customer';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Check if quick 1-click login was triggered
+    if (isset($_POST['quick_role'])) {
+        if ($_POST['quick_role'] === 'admin') {
+            $username = 'admin';
+            $password = 'admin123';
+        } elseif ($_POST['quick_role'] === 'staff') {
+            $username = 'staff1';
+            $password = 'staff123';
+        } elseif ($_POST['quick_role'] === 'user') {
+            $username = 'user';
+            $password = 'user123';
+        }
+    } else {
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
     }
 
-    $validServices = ['General Service', 'Payment & Billing', 'Customer Support', 'Priority Service'];
-    if (!in_array($serviceType, $validServices)) {
-        $serviceType = 'General Service';
-    }
+    $usernameVal = $username;
 
-    try {
-        $pdo->beginTransaction();
-        $queueNumber = generateNextQueueNumber($pdo, $serviceType);
+    if (empty($username) || empty($password)) {
+        $error = 'Please enter both username/email and password.';
+    } else {
+        $pdo = getDBConnection();
+        // Support login via either username or email
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1");
+        $stmt->execute([$username, $username]);
+        $user = $stmt->fetch();
 
-        $stmt = $pdo->prepare("INSERT INTO queues (queue_number, customer_name, customer_type, service_type, status, created_at) VALUES (?, ?, 'walk_in', ?, 'waiting', NOW())");
-        $stmt->execute([$queueNumber, $customerName, $serviceType]);
-        $newQueueId = $pdo->lastInsertId();
+        if ($user && password_verify($password, $user['password'])) {
+            if ($user['status'] !== 'active') {
+                $error = 'Your account has been deactivated. Please contact an administrator.';
+            } else {
+                // Successful login
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['ic_passport'] = $user['ic_passport'] ?? '';
+                $_SESSION['phone'] = $user['phone'] ?? '';
+                $_SESSION['email'] = $user['email'] ?? '';
 
-        $pdo->commit();
+                setFlash('success', 'Welcome back, ' . $user['full_name'] . '!');
 
-        setFlash('success', 'Your queue number ' . $queueNumber . ' has been generated!');
-        header("Location: ticket.php?id=" . $newQueueId . "&num=" . urlencode($queueNumber));
-        exit;
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        setFlash('error', 'Failed to generate ticket. Please try again.');
+                if ($user['role'] === 'admin') {
+                    header("Location: /Queue_management_system/admin/index.php");
+                } elseif ($user['role'] === 'staff') {
+                    header("Location: /Queue_management_system/staff/index.php");
+                } else {
+                    header("Location: /Queue_management_system/user/dashboard.php");
+                }
+                exit;
+            }
+        } else {
+            $error = 'Invalid username/email or password.';
+        }
     }
 }
 
-// Fetch general queue overview for customers
-$waitingCount = $pdo->query("SELECT COUNT(*) FROM queues WHERE status = 'waiting' AND DATE(created_at) = CURDATE()")->fetchColumn();
-$servingCount = $pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('calling', 'serving') AND DATE(created_at) = CURDATE()")->fetchColumn();
-
-// Latest called number
-$stmtLatest = $pdo->query("SELECT q.queue_number, c.counter_number FROM queues q LEFT JOIN counters c ON q.counter_id = c.id WHERE q.status IN ('calling', 'serving') ORDER BY q.called_at DESC LIMIT 1");
-$latestCalled = $stmtLatest->fetch();
-
+$pageTitle = 'Sign In - System Portal';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="page-header" style="text-align: center; display: block; margin-bottom: 2rem;">
-    <h1 class="page-title" style="justify-content: center; font-size: 2.2rem;">
-        <?php echo getIcon('ticket', 32); ?> Welcome to QueueFlow
-    </h1>
-    <p class="page-desc" style="font-size: 1.1rem;">Take a queue ticket in seconds or check your existing queue status</p>
-</div>
-
-<!-- Quick Stat Banners -->
-<div class="grid grid-3" style="margin-bottom: 2rem;">
-    <div class="stat-card">
-        <div class="stat-icon primary">
-            <?php echo getIcon('bell', 24); ?>
-        </div>
-        <div class="stat-content">
-            <div class="stat-label">Currently Serving</div>
-            <div class="stat-value" style="color: #1d4ed8;">
-                <?php echo $latestCalled ? e($latestCalled['queue_number']) : 'None'; ?>
+<div style="max-width: 480px; margin: 3rem auto;">
+    <div class="card" style="box-shadow: var(--shadow-lg); padding: 2.25rem; border: 1.5px solid #e2e8f0; border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                <?php echo getIcon('log-in', 28); ?>
             </div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">
-                <?php echo $latestCalled && $latestCalled['counter_number'] ? 'at ' . e($latestCalled['counter_number']) : 'Waiting for next call'; ?>
-            </small>
+            <h1 style="font-size: 1.6rem; font-weight: 800; color: #0f172a;">Sign In to QueueFlow</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to access Citizen Portal, Staff Station, or Admin</p>
         </div>
-    </div>
 
-    <div class="stat-card">
-        <div class="stat-icon warning">
-            <?php echo getIcon('clock', 24); ?>
-        </div>
-        <div class="stat-content">
-            <div class="stat-label">Customers Waiting</div>
-            <div class="stat-value" style="color: #d97706;"><?php echo (int)$waitingCount; ?></div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">In waiting queue today</small>
-        </div>
-    </div>
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-error">
+                <?php echo getIcon('alert-triangle', 18); ?> <span><?php echo e($error); ?></span>
+            </div>
+        <?php endif; ?>
 
-    <div class="stat-card">
-        <div class="stat-icon success">
-            <?php echo getIcon('desktop', 24); ?>
-        </div>
-        <div class="stat-content">
-            <div class="stat-label">Active Counters</div>
-            <div class="stat-value" style="color: #059669;"><?php echo (int)$servingCount; ?></div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">Currently in service</small>
-        </div>
-    </div>
-</div>
-
-<div class="grid grid-2">
-    <!-- Ticket Generation Box -->
-    <div class="card" style="box-shadow: var(--shadow-md);">
-        <div class="card-header">
-            <h2 class="card-title"><?php echo getIcon('plus', 20); ?> Get New Queue Ticket</h2>
-        </div>
-        <form method="POST" action="index.php">
-            <input type="hidden" name="action" value="generate_ticket">
-
+        <form id="loginForm" method="POST" action="index.php">
             <div class="form-group">
-                <label class="form-label" for="customer_name">Customer Name (Optional)</label>
-                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="e.g. John Doe / Alice Smith (or leave blank for Guest)">
-                <small style="color: var(--text-muted); font-size: 0.82rem; margin-top: 4px; display: block;">Used for calling announcements on the display screen.</small>
+                <label class="form-label" for="username">Username or Email Address</label>
+                <input type="text" id="username" name="username" class="form-control" value="<?php echo e($usernameVal); ?>" required autofocus placeholder="name@example.com or username">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Select Service Department</label>
-                <div class="service-cards-grid">
-                    <label class="service-radio-card">
-                        <input type="radio" name="service_type" value="General Service" checked>
-                        <div class="service-radio-content">
-                            <strong style="display: block; font-size: 0.95rem; color: #1e3a8a;">General Service</strong>
-                            <small style="color: var(--text-muted);">Series <strong>A</strong> &bull; Registration & Inquiries</small>
-                        </div>
-                    </label>
-
-                    <label class="service-radio-card">
-                        <input type="radio" name="service_type" value="Payment & Billing">
-                        <div class="service-radio-content">
-                            <strong style="display: block; font-size: 0.95rem; color: #1e3a8a;">Payment & Billing</strong>
-                            <small style="color: var(--text-muted);">Series <strong>B</strong> &bull; Cashier & Invoice Payments</small>
-                        </div>
-                    </label>
-
-                    <label class="service-radio-card">
-                        <input type="radio" name="service_type" value="Customer Support">
-                        <div class="service-radio-content">
-                            <strong style="display: block; font-size: 0.95rem; color: #1e3a8a;">Customer Support</strong>
-                            <small style="color: var(--text-muted);">Series <strong>C</strong> &bull; Account Help & Consultations</small>
-                        </div>
-                    </label>
-
-                    <label class="service-radio-card">
-                        <input type="radio" name="service_type" value="Priority Service">
-                        <div class="service-radio-content">
-                            <strong style="display: block; font-size: 0.95rem; color: #7c3aed;">Priority Service</strong>
-                            <small style="color: var(--text-muted);">Series <strong>P</strong> &bull; Senior Citizens & Express Lane</small>
-                        </div>
-                    </label>
-                </div>
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password">
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
-                <?php echo getIcon('ticket', 20); ?> Take Queue Number Now
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; font-weight: 700;">
+                <?php echo getIcon('log-in', 18); ?> Sign In
             </button>
         </form>
-    </div>
 
-    <!-- Quick Navigation & Helpful Info -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title"><?php echo getIcon('info', 20); ?> Customer Self-Service</h2>
+        <!-- Divider -->
+        <div style="display: flex; align-items: center; text-align: center; margin: 1.75rem 0 1.25rem 0; color: #94a3b8; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+            <span style="padding: 0 0.85rem;">⚡ Quick 1-Click Demo Fill</span>
+            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
         </div>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-            Already have a ticket? You can monitor live calls on the big screen or check your estimated wait time on your phone.
-        </p>
 
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <a href="display.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 1rem;">
-                <?php echo getIcon('tv', 24); ?>
-                <div style="text-align: left; margin-left: 0.5rem;">
-                    <div style="font-weight: 700;">Open Live Calling Display Screen</div>
-                    <small style="color: var(--text-muted);">View the real-time public screen with current serving tickets</small>
-                </div>
-            </a>
+        <!-- Quick 3 Role Buttons -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem;">
+            <!-- Admin -->
+            <form method="POST" action="index.php">
+                <input type="hidden" name="quick_role" value="admin">
+                <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 0.6rem 0.4rem; flex-direction: column; gap: 0.35rem; border-color: #fecaca; background: #fff5f5; color: #b91c1c;">
+                    <?php echo getIcon('key', 18); ?>
+                    <span style="font-weight: 700; font-size: 0.82rem;">Admin</span>
+                </button>
+            </form>
 
-            <a href="check_status.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 1rem;">
-                <?php echo getIcon('search', 24); ?>
-                <div style="text-align: left; margin-left: 0.5rem;">
-                    <div style="font-weight: 700;">Check My Queue Position</div>
-                    <small style="color: var(--text-muted);">Enter your queue number to see how many people are ahead of you</small>
-                </div>
-            </a>
+            <!-- Staff -->
+            <form method="POST" action="index.php">
+                <input type="hidden" name="quick_role" value="staff">
+                <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 0.6rem 0.4rem; flex-direction: column; gap: 0.35rem; border-color: #c7d2fe; background: #f5f7ff; color: #4338ca;">
+                    <?php echo getIcon('desktop', 18); ?>
+                    <span style="font-weight: 700; font-size: 0.82rem;">Staff 01</span>
+                </button>
+            </form>
 
-            <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.88rem; color: #475569;">
-                <strong>💡 Tip for Customers:</strong> Keep your ticket receipt handy. Watch the display screen or check online to ensure you do not miss your turn.
+            <!-- Public User -->
+            <form method="POST" action="index.php">
+                <input type="hidden" name="quick_role" value="user">
+                <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 0.6rem 0.4rem; flex-direction: column; gap: 0.35rem; border-color: #bbf7d0; background: #f0fdf4; color: #15803d;">
+                    <?php echo getIcon('user', 18); ?>
+                    <span style="font-weight: 700; font-size: 0.82rem;">Public User</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Default Demo Credentials Box -->
+        <div style="margin-top: 1.5rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.15rem 1.25rem; font-size: 0.88rem; line-height: 1.6; text-align: left; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);">
+            <div style="font-weight: 700; color: #1e293b; margin-bottom: 0.35rem;">Default Demo Credentials:</div>
+            <div style="color: #475569; margin-bottom: 0.2rem;">
+                <strong>Admin:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">admin</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">admin123</code>
             </div>
+            <div style="color: #475569; margin-bottom: 0.2rem;">
+                <strong>Staff (Counters 1-4):</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff1</code> to <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff4</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">staff123</code>
+            </div>
+            <div style="color: #475569;">
+                <strong>Public User:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">user</code> / <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #cbd5e1;">user123</code>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; text-align: center; font-size: 0.88rem; color: #64748b;">
+            Don't have an account yet? 
+            <a href="register.php" style="color: var(--primary); font-weight: 600; text-decoration: none;">Register Here</a>
         </div>
     </div>
 </div>

@@ -34,8 +34,16 @@ $baseUrl = '/Queue_management_system';
         <!-- Top Main Bar: Brand on Left, User & Actions on Right -->
         <div class="top-navbar">
             <div class="top-nav-container">
+<?php
+$brandHomeUrl = $baseUrl . '/index.php';
+if ($user) {
+    if ($user['role'] === 'admin') $brandHomeUrl = $baseUrl . '/admin/index.php';
+    elseif ($user['role'] === 'staff') $brandHomeUrl = $baseUrl . '/staff/index.php';
+    elseif ($user['role'] === 'user') $brandHomeUrl = $baseUrl . '/user/dashboard.php';
+}
+?>
                 <!-- Brand Logo -->
-                <a href="<?php echo $baseUrl; ?>/index.php" class="nav-brand">
+                <a href="<?php echo $brandHomeUrl; ?>" class="nav-brand">
                     <span class="brand-icon">
                         <?php echo getIcon('ticket', 20); ?>
                     </span>
@@ -70,22 +78,27 @@ $baseUrl = '/Queue_management_system';
                             <?php echo getIcon('log-out', 14); ?> <span>Logout</span>
                         </a>
                     <?php else: ?>
-                        <a href="<?php echo $baseUrl; ?>/register.php" class="btn btn-secondary btn-sm" style="margin-right: 0.5rem;">
-                            <?php echo getIcon('user-plus', 14); ?> <span>Register</span>
-                        </a>
-                        <a href="<?php echo $baseUrl; ?>/login.php" class="btn btn-primary btn-sm">
-                            <?php echo getIcon('log-in', 14); ?> <span>Sign In</span>
-                        </a>
+                        <?php if ($currentPage !== 'register.php'): ?>
+                            <a href="<?php echo $baseUrl; ?>/register.php" class="btn btn-secondary btn-sm" style="margin-right: 0.5rem;">
+                                <?php echo getIcon('user-plus', 14); ?> <span>Register</span>
+                            </a>
+                        <?php endif; ?>
+                        <?php if ($currentPage !== 'index.php' && $currentPage !== 'login.php'): ?>
+                            <a href="<?php echo $baseUrl; ?>/index.php" class="btn btn-primary btn-sm">
+                                <?php echo getIcon('log-in', 14); ?> <span>Sign In</span>
+                            </a>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
 
-        <!-- Subnav Tab Bar -->
+        <?php if ($user): ?>
+        <!-- Subnav Tab Bar (Only displayed for authenticated portal users) -->
         <div class="subnav-bar">
             <div class="subnav-container">
                 <ul class="subnav-tabs">
-                    <?php if ($user && $user['role'] === 'admin'): ?>
+                    <?php if ($user['role'] === 'admin'): ?>
                         <!-- Admin Subnav Tabs -->
                         <li>
                             <a href="<?php echo $baseUrl; ?>/admin/index.php" class="subnav-tab <?php echo ($currentPage === 'index.php' && $inAdmin) ? 'active' : ''; ?>">
@@ -138,7 +151,7 @@ $baseUrl = '/Queue_management_system';
                             </a>
                         </li>
 
-                    <?php elseif ($user && $user['role'] === 'user'): ?>
+                    <?php elseif ($user['role'] === 'user'): ?>
                         <!-- Citizen User Subnav Tabs -->
                         <li>
                             <a href="<?php echo $baseUrl; ?>/user/dashboard.php" class="subnav-tab <?php echo ($currentPage === 'dashboard.php' && $inUser) ? 'active' : ''; ?>">
@@ -171,7 +184,7 @@ $baseUrl = '/Queue_management_system';
                             </a>
                         </li>
 
-                    <?php elseif ($user && $user['role'] === 'staff'): ?>
+                    <?php elseif ($user['role'] === 'staff'): ?>
                         <!-- Staff Subnav Tabs -->
                         <li>
                             <a href="<?php echo $baseUrl; ?>/staff/index.php" class="subnav-tab <?php echo ($currentPage === 'index.php' && $inStaff) ? 'active' : ''; ?>">
@@ -184,37 +197,15 @@ $baseUrl = '/Queue_management_system';
                             </a>
                         </li>
                         <li>
-                            <a href="<?php echo $baseUrl; ?>/index.php" target="_blank" class="subnav-tab">
+                            <a href="<?php echo $baseUrl; ?>/kiosk.php" target="_blank" class="subnav-tab">
                                 <?php echo getIcon('ticket', 16); ?> <span>Customer Ticket Kiosk</span>
-                            </a>
-                        </li>
-
-                    <?php else: ?>
-                        <!-- Customer Public Tabs -->
-                        <li>
-                            <a href="<?php echo $baseUrl; ?>/index.php" class="subnav-tab <?php echo ($currentPage === 'index.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('ticket', 16); ?> <span>Walk-In Kiosk</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $baseUrl; ?>/display.php" class="subnav-tab <?php echo ($currentPage === 'display.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('tv', 16); ?> <span>Live Calling Display</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $baseUrl; ?>/check_status.php" class="subnav-tab <?php echo ($currentPage === 'check_status.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('search', 16); ?> <span>Check Waiting Status</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $baseUrl; ?>/register.php" class="subnav-tab <?php echo ($currentPage === 'register.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('user-plus', 16); ?> <span>Citizen Registration</span>
                             </a>
                         </li>
                     <?php endif; ?>
                 </ul>
             </div>
         </div>
+        <?php endif; ?>
     </header>
 
     <main class="main-content">
