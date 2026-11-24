@@ -126,7 +126,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `password`, `full_name`, `ic_pas
 (1, 'admin', 'admin@example.com', '$2y$10$I.ku/e7JCufLz9qjjrQQRONXZNMSlrvgrkby0Uwx7V9GmWxBjt6tm', 'System Administrator', 'A00000000', '+60 12-000 0000', 'admin', 'active'),
 (2, 'staff1', 'staff1@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Staff Nurul Izzati', 'S11111111', '+60 13-111 2222', 'staff', 'active'),
 (3, 'staff2', 'staff2@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Michael Chen', 'S22222222', '+60 14-333 4444', 'staff', 'active'),
-(4, 'user', 'user@example.com', '$2y$10$mBqL3qQ1kP9wU0yZ3vO5a.k6g8t0u2w4y6a8c0e2g4i6k8m0o2q4s', 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'user', 'active');
+(4, 'user', 'user@example.com', '$2y$10$nkGliQL3p2hzRgyr0rxBpucRFisLyCK64eW2wTEKgkhbnbAzylePm', 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'user', 'active');
 
 INSERT INTO `services` (`id`, `code`, `name`, `description`, `est_duration`, `status`) VALUES
 (1, 'PR', 'Passport Renewal', 'Standard renewal for Malaysian international passport (e-Passport).', 15, 'active'),

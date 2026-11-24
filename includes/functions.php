@@ -194,30 +194,62 @@ function renderStatusBadge($status) {
 }
 
 /**
- * Map Counter to its designated Service Department
+ * Map Counter to its designated Service Departments (array of valid service names)
  */
-function getCounterDesignatedService($counterNumber, $counterName = '') {
+function getCounterDesignatedServices($counterNumber, $counterName = '') {
     $num = trim($counterNumber);
     $name = strtolower($counterName);
 
-    if (preg_match('/(^|\D)1($|\D)/', $num)) return 'Passport Renewal';
-    if (preg_match('/(^|\D)2($|\D)/', $num)) return 'Visa Application';
-    if (preg_match('/(^|\D)3($|\D)/', $num)) return 'Work Permit';
-    if (preg_match('/(^|\D)4($|\D)/', $num)) return 'Immigration Enquiry';
+    // Number-based matching takes primary priority
+    if (preg_match('/(^|\D)4($|\D)/', $num)) {
+        return ['Priority Service', 'Immigration Enquiry', 'Priority & Express Services'];
+    }
+    if (preg_match('/(^|\D)3($|\D)/', $num)) {
+        return ['Customer Support', 'Work Permit', 'Customer Support & Documentation'];
+    }
+    if (preg_match('/(^|\D)2($|\D)/', $num)) {
+        return ['Payment & Billing', 'Visa Application', 'Payment & Billing Services'];
+    }
+    if (preg_match('/(^|\D)1($|\D)/', $num)) {
+        return ['General Service', 'Passport Renewal', 'Passport Application', 'General Enquiries & Registration'];
+    }
 
-    if (stripos($name, 'passport renewal') !== false || stripos($name, 'general') !== false) {
-        return 'Passport Renewal';
+    // Name-based matching if counter number is not specified
+    if (stripos($name, 'priority') !== false || stripos($name, 'express') !== false || stripos($name, 'immigration') !== false) {
+        return ['Priority Service', 'Immigration Enquiry', 'Priority & Express Services'];
     }
-    if (stripos($name, 'visa') !== false || stripos($name, 'payment') !== false) {
-        return 'Visa Application';
+    if (stripos($name, 'support') !== false || stripos($name, 'document') !== false || stripos($name, 'permit') !== false) {
+        return ['Customer Support', 'Work Permit', 'Customer Support & Documentation'];
     }
-    if (stripos($name, 'work permit') !== false || stripos($name, 'support') !== false) {
-        return 'Work Permit';
+    if (stripos($name, 'payment') !== false || stripos($name, 'billing') !== false || stripos($name, 'visa') !== false) {
+        return ['Payment & Billing', 'Visa Application', 'Payment & Billing Services'];
     }
-    if (stripos($name, 'enquiry') !== false || stripos($name, 'priority') !== false || stripos($name, 'express') !== false) {
-        return 'Immigration Enquiry';
+    if (stripos($name, 'enquir') !== false || stripos($name, 'general') !== false || stripos($name, 'passport') !== false) {
+        return ['General Service', 'Passport Renewal', 'Passport Application', 'General Enquiries & Registration'];
     }
-    return null;
+
+    return ['General Service'];
+}
+
+/**
+ * Return primary designated service name
+ */
+function getCounterDesignatedService($counterNumber, $counterName = '') {
+    $services = getCounterDesignatedServices($counterNumber, $counterName);
+    return $services[0] ?? 'General Service';
+}
+
+/**
+ * Return ticket prefix for counter (A, B, C, P)
+ */
+function getCounterPrefix($counterNumber, $counterName = '') {
+    $num = trim($counterNumber);
+    $name = strtolower($counterName);
+    if (preg_match('/(^|\D)4($|\D)/', $num) || stripos($name, 'priority') !== false || stripos($name, 'immigration') !== false) return 'P';
+    if (preg_match('/(^|\D)3($|\D)/', $num) || stripos($name, 'support') !== false || stripos($name, 'permit') !== false) return 'C';
+    if (preg_match('/(^|\D)2($|\D)/', $num) || stripos($name, 'payment') !== false || stripos($name, 'visa') !== false) return 'B';
+    if (preg_match('/(^|\D)1($|\D)/', $num) || stripos($name, 'enquir') !== false || stripos($name, 'general') !== false || stripos($name, 'passport') !== false) return 'A';
+    return 'A';
 }
 
 /**

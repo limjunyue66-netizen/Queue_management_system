@@ -12,15 +12,18 @@ $queueNumber = strtoupper(trim($_GET['ticket'] ?? $_GET['queue_number'] ?? ''));
 // Initial fetch for server-side rendering (most recent record for this ticket)
 $queue = null;
 if (!empty($queueNumber)) {
+    $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', $queueNumber);
     $stmt = $pdo->prepare("
         SELECT q.*, c.counter_number, c.counter_name, u.full_name as staff_name
         FROM queues q
         LEFT JOIN counters c ON q.counter_id = c.id
         LEFT JOIN users u ON q.staff_id = u.id
-        WHERE UPPER(q.queue_number) = ? 
+        WHERE UPPER(TRIM(q.queue_number)) = ?
+           OR REPLACE(REPLACE(UPPER(q.queue_number), ' ', ''), '-', '') = ?
+           OR UPPER(TRIM(q.queue_number)) LIKE ?
         ORDER BY q.id DESC LIMIT 1
     ");
-    $stmt->execute([$queueNumber]);
+    $stmt->execute([$queueNumber, $cleanNum, $cleanNum . '%']);
     $queue = $stmt->fetch();
 }
 

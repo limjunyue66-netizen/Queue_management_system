@@ -17,15 +17,18 @@ $searched = false;
 
 if (!empty($searchQuery)) {
     $searched = true;
+    $cleanSearch = preg_replace('/[^A-Za-z0-9]/', '', $searchQuery);
     $stmt = $pdo->prepare("
         SELECT q.*, c.counter_number, c.counter_name, u.full_name as staff_name
         FROM queues q
         LEFT JOIN counters c ON q.counter_id = c.id
         LEFT JOIN users u ON q.staff_id = u.id
-        WHERE UPPER(q.queue_number) = ? 
+        WHERE UPPER(TRIM(q.queue_number)) = ?
+           OR REPLACE(REPLACE(UPPER(q.queue_number), ' ', ''), '-', '') = ?
+           OR UPPER(TRIM(q.queue_number)) LIKE ?
         ORDER BY q.id DESC LIMIT 1
     ");
-    $stmt->execute([$searchQuery]);
+    $stmt->execute([$searchQuery, $cleanSearch, $cleanSearch . '%']);
     $queueRecord = $stmt->fetch();
 
     if ($queueRecord && $queueRecord['status'] === 'waiting') {

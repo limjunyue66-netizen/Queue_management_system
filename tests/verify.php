@@ -37,13 +37,16 @@ echo "[PASS] Successfully loaded config and includes.\n";
 // 2. Test Password Hashing and Verification
 $adminPass = 'admin123';
 $staffPass = 'staff123';
+$userPass  = 'user123';
 $adminHash = '$2y$10$I.ku/e7JCufLz9qjjrQQRONXZNMSlrvgrkby0Uwx7V9GmWxBjt6tm';
 $staffHash = '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu';
+$userHash  = '$2y$10$nkGliQL3p2hzRgyr0rxBpucRFisLyCK64eW2wTEKgkhbnbAzylePm';
 
 assert(password_verify($adminPass, $adminHash), "Admin password verification failed");
 assert(password_verify($staffPass, $staffHash), "Staff password verification failed");
+assert(password_verify($userPass, $userHash), "Citizen User password verification failed");
 assert(!password_verify('wrongpassword', $adminHash), "Invalid password check failed");
-echo "[PASS] Password hashing and verification tests passed.\n";
+echo "[PASS] Password hashing and verification tests passed for Admin, Staff, and Citizen.\n";
 
 // 2.1 Test Quick Login Role Mapping
 $rolesToTest = [
@@ -167,10 +170,11 @@ if ($connectedPdo) {
     echo "[PASS] Generated queue numbers: Passport Renewal -> $qGen1, Visa -> $qGen2.\n";
 
     // Test Counter Designated Service Mapping
-    assert(getCounterDesignatedService('Counter 1', 'Passport Renewal') === 'Passport Renewal', "Counter 1 service mapping failed");
-    assert(getCounterDesignatedService('Counter 2', 'Visa Application') === 'Visa Application', "Counter 2 service mapping failed");
-    assert(getCounterDesignatedService('Counter 3', 'Work Permit') === 'Work Permit', "Counter 3 service mapping failed");
-    assert(getCounterDesignatedService('Counter 4', 'Immigration Enquiry') === 'Immigration Enquiry', "Counter 4 service mapping failed");
+    assert(in_array('General Service', getCounterDesignatedServices('Counter 1', 'General Enquiries')) && in_array('Passport Renewal', getCounterDesignatedServices('Counter 1', 'Passport Renewal')), "Counter 1 service mapping failed");
+    assert(in_array('Payment & Billing', getCounterDesignatedServices('Counter 2', 'Payment & Billing Services')) && in_array('Visa Application', getCounterDesignatedServices('Counter 2', 'Visa Application')), "Counter 2 service mapping failed");
+    assert(in_array('Customer Support', getCounterDesignatedServices('Counter 3', 'Customer Support')) && in_array('Work Permit', getCounterDesignatedServices('Counter 3', 'Work Permit')), "Counter 3 service mapping failed");
+    assert(in_array('Priority Service', getCounterDesignatedServices('Counter 4', 'Priority & Express Services')) && in_array('Immigration Enquiry', getCounterDesignatedServices('Counter 4', 'Immigration Enquiry')), "Counter 4 service mapping failed");
+    assert(getCounterPrefix('Counter 1') === 'A' && getCounterPrefix('Counter 2') === 'B' && getCounterPrefix('Counter 3') === 'C' && getCounterPrefix('Counter 4') === 'P', "Counter prefix mapping failed");
     echo "[PASS] Counter to Service department mapping strictly verified (No cross-calling).\n";
 
     // Test Complete Queue Life Cycle (waiting -> calling -> serving -> completed)

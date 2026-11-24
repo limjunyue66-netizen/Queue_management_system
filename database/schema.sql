@@ -143,10 +143,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `password`, `full_name`, `ic_pas
 (1, 'admin', 'admin@example.com', '$2y$10$I.ku/e7JCufLz9qjjrQQRONXZNMSlrvgrkby0Uwx7V9GmWxBjt6tm', 'System Administrator', 'A00000000', '+60 12-000 0000', 'admin', 'active'),
 (2, 'staff1', 'staff1@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Staff Nurul Izzati', 'S11111111', '+60 13-111 2222', 'staff', 'active'),
 (3, 'staff2', 'staff2@example.com', '$2y$10$RxT5eRtaBiGwcz/O2mOaPOFGodbnSjY55sjX.oifxJEVI9LxH8aOu', 'Michael Chen', 'S22222222', '+60 14-333 4444', 'staff', 'active'),
-(4, 'user', 'user@example.com', '$2y$10$Q2.L5VfK9O2yZlqZ.u0O3eJj/9k0P.m7f5vN2m4t6l8a0c2e4g6h8', 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'user', 'active');
-
--- Update user password to standard valid bcrypt hash for 'user123'
-UPDATE `users` SET `password` = '$2y$10$wT8vL6.G7xH0fD5kO3rI3.r5f4L8u7w2Y1a9k3b5c7d9e1f3g5h7j' WHERE `id` = 4;
+(4, 'user', 'user@example.com', '$2y$10$nkGliQL3p2hzRgyr0rxBpucRFisLyCK64eW2wTEKgkhbnbAzylePm', 'Ahmad bin Abdullah', '900101-14-5567', '+60 17-123 4567', 'user', 'active');
 
 -- 2. Services Catalog
 INSERT INTO `services` (`id`, `code`, `name`, `description`, `est_duration`, `status`) VALUES
