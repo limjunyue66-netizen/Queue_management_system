@@ -104,12 +104,12 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>APPLICATION REF</th>
-                        <th>APPLICANT NAME & IC</th>
-                        <th>SERVICE</th>
-                        <th>SUBMITTED DATE</th>
-                        <th>STATUS</th>
-                        <th>ACTION</th>
+                        <th style="width: 20%;">APPLICATION REF</th>
+                        <th style="width: 24%;">APPLICANT NAME & IC</th>
+                        <th style="width: 22%;">SERVICE</th>
+                        <th style="width: 14%;">SUBMITTED DATE</th>
+                        <th style="width: 10%;">STATUS</th>
+                        <th style="width: 10%; text-align: right;">ACTION</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -122,25 +122,33 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php else: ?>
                         <?php foreach ($applications as $app): ?>
                             <tr>
-                                <td><strong style="color: #0284c7;"><?php echo e($app['application_ref']); ?></strong></td>
                                 <td>
-                                    <div style="font-weight: 700; color: #1e293b;"><?php echo e($app['applicant_name']); ?></div>
-                                    <div style="font-size: 0.8rem; color: #64748b;">
+                                    <strong style="color: #0284c7; font-size: 0.98rem; font-weight: 800; letter-spacing: 0.3px;"><?php echo e($app['application_ref']); ?></strong>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 700; color: #0f172a; font-size: 0.93rem;"><?php echo e($app['applicant_name']); ?></div>
+                                    <div class="cell-sub">
                                         <?php echo e($app['applicant_ic']); ?> &bull; <?php echo e($app['user_email']); ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <span style="display: inline-block; padding: 0.15rem 0.4rem; background: #f1f5f9; border-radius: 4px; font-weight: 700; font-size: 0.75rem; color: #475569; margin-right: 0.35rem;">
-                                        <?php echo e($app['service_code']); ?>
-                                    </span>
-                                    <strong><?php echo e($app['service_name']); ?></strong>
+                                    <div style="display: flex; align-items: center;">
+                                        <span class="service-code-tag">
+                                            <?php echo e($app['service_code']); ?>
+                                        </span>
+                                        <strong style="color: #0f172a; font-size: 0.95rem;"><?php echo e($app['service_name']); ?></strong>
+                                    </div>
                                 </td>
-                                <td><?php echo date('d M Y', strtotime($app['submitted_date'])); ?></td>
-                                <td><?php echo renderStatusBadge($app['status']); ?></td>
                                 <td>
-                                    <button onclick="openManageModal(<?php echo $app['id']; ?>, '<?php echo e($app['application_ref']); ?>', '<?php echo e($app['status']); ?>', '<?php echo e(addslashes($app['remarks'] ?? '')); ?>')" class="btn btn-primary btn-sm" style="padding: 0.3rem 0.65rem;">
-                                        <?php echo getIcon('edit', 14); ?> Manage
-                                    </button>
+                                    <span style="font-weight: 600; color: #334155; font-size: 0.9rem;"><?php echo date('d M Y', strtotime($app['submitted_date'])); ?></span>
+                                </td>
+                                <td><?php echo renderStatusBadge($app['status']); ?></td>
+                                <td style="text-align: right;">
+                                    <div class="table-actions" style="justify-content: flex-end;">
+                                        <button onclick="openManageModal(<?php echo $app['id']; ?>, '<?php echo e($app['application_ref']); ?>', '<?php echo e($app['status']); ?>', '<?php echo e(addslashes($app['remarks'] ?? '')); ?>')" class="btn btn-primary btn-sm">
+                                            <?php echo getIcon('edit', 14); ?> Manage
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

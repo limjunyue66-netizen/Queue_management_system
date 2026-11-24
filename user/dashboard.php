@@ -192,21 +192,27 @@ require_once __DIR__ . '/../includes/header.php';
                     <tbody>
                         <?php foreach ($recentAppointments as $app): ?>
                             <tr>
-                                <td><strong style="color: #0284c7; font-size: 0.85rem;"><?php echo e($app['appointment_ref']); ?></strong></td>
-                                <td><?php echo e($app['service_name']); ?></td>
                                 <td>
-                                    <div style="font-weight: 600; font-size: 0.85rem;"><?php echo date('d M Y', strtotime($app['appointment_date'])); ?></div>
-                                    <small style="color: #64748b;"><?php echo e($app['time_slot']); ?></small>
+                                    <strong style="color: #0284c7; font-size: 0.95rem; font-weight: 800; letter-spacing: 0.3px;"><?php echo e($app['appointment_ref']); ?></strong>
+                                </td>
+                                <td>
+                                    <strong style="color: #0f172a; font-size: 0.93rem;"><?php echo e($app['service_name']); ?></strong>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 700; font-size: 0.92rem; color: #0f172a;"><?php echo date('d M Y', strtotime($app['appointment_date'])); ?></div>
+                                    <div class="cell-sub"><?php echo e($app['time_slot']); ?></div>
                                 </td>
                                 <td><?php echo renderStatusBadge($app['status']); ?></td>
                                 <td>
-                                    <?php if ($app['appointment_date'] === date('Y-m-d') && $app['status'] === 'confirmed'): ?>
-                                        <a href="checkin.php" class="btn btn-sm" style="background: #16a34a; color: #fff; padding: 0.25rem 0.6rem; font-size: 0.78rem;">
-                                            Check In
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="my_appointments.php" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;">Details</a>
-                                    <?php endif; ?>
+                                    <div class="table-actions">
+                                        <?php if ($app['appointment_date'] === date('Y-m-d') && $app['status'] === 'confirmed'): ?>
+                                            <a href="checkin.php" class="btn btn-sm" style="background: #16a34a; color: #fff;">
+                                                Check In
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="my_appointments.php" class="btn btn-secondary btn-sm">Details</a>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

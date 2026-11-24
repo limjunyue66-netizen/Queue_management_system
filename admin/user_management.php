@@ -77,13 +77,13 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>CITIZEN NAME</th>
-                        <th>IDENTIFICATION (IC / PASSPORT)</th>
-                        <th>CONTACT DETAILS</th>
-                        <th>ACTIVITY</th>
-                        <th>REGISTERED DATE</th>
-                        <th>STATUS</th>
-                        <th>ACTIONS</th>
+                        <th style="width: 22%;">CITIZEN NAME</th>
+                        <th style="width: 18%;">IDENTIFICATION</th>
+                        <th style="width: 20%;">CONTACT DETAILS</th>
+                        <th style="width: 15%;">ACTIVITY</th>
+                        <th style="width: 12%;">REGISTERED DATE</th>
+                        <th style="width: 8%;">STATUS</th>
+                        <th style="width: 5%; text-align: right;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,38 +97,42 @@ require_once __DIR__ . '/../includes/header.php';
                         <?php foreach ($citizens as $c): ?>
                             <tr>
                                 <td>
-                                    <div style="display: flex; align-items: center; gap: 0.65rem;">
-                                        <div style="width: 34px; height: 34px; border-radius: 50%; background: #e0f2fe; color: #0284c7; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 38px; height: 38px; border-radius: 50%; background: #e0f2fe; color: #0284c7; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0;">
                                             <?php echo strtoupper(substr($c['full_name'], 0, 1)); ?>
                                         </div>
                                         <div>
                                             <strong style="color: #0f172a; font-size: 0.95rem;"><?php echo e($c['full_name']); ?></strong>
-                                            <div style="font-size: 0.78rem; color: #64748b;">@<?php echo e($c['username']); ?></div>
+                                            <div class="cell-sub" style="margin-top: 0.15rem;">@<?php echo e($c['username']); ?></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <strong style="color: #334155; font-size: 0.9rem;"><?php echo e($c['ic_passport'] ?: 'N/A'); ?></strong>
+                                    <strong style="color: #334155; font-size: 0.92rem;"><?php echo e($c['ic_passport'] ?: 'N/A'); ?></strong>
                                 </td>
                                 <td>
-                                    <div style="font-size: 0.85rem; font-weight: 600; color: #1e293b;"><?php echo e($c['phone'] ?: 'N/A'); ?></div>
-                                    <small style="color: #64748b;"><?php echo e($c['email'] ?: 'No email'); ?></small>
+                                    <div style="font-size: 0.9rem; font-weight: 600; color: #1e293b;"><?php echo e($c['phone'] ?: 'N/A'); ?></div>
+                                    <div class="cell-sub" style="margin-top: 0.15rem;"><?php echo e($c['email'] ?: 'No email'); ?></div>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.82rem; color: #475569;">
+                                    <span style="font-size: 0.85rem; color: #475569;">
                                         <strong><?php echo (int)$c['booking_count']; ?></strong> bookings &bull; 
                                         <strong><?php echo (int)$c['app_count']; ?></strong> apps
                                     </span>
                                 </td>
-                                <td><?php echo date('d M Y', strtotime($c['created_at'])); ?></td>
-                                <td><?php echo renderStatusBadge($c['status']); ?></td>
                                 <td>
-                                    <form method="POST" action="user_management.php" style="margin: 0;">
-                                        <input type="hidden" name="toggle_id" value="<?php echo $c['id']; ?>">
-                                        <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem;">
-                                            <?php echo ($c['status'] === 'active') ? 'Deactivate' : 'Activate'; ?>
-                                        </button>
-                                    </form>
+                                    <span style="font-weight: 600; color: #334155; font-size: 0.9rem;"><?php echo date('d M Y', strtotime($c['created_at'])); ?></span>
+                                </td>
+                                <td><?php echo renderStatusBadge($c['status']); ?></td>
+                                <td style="text-align: right;">
+                                    <div class="table-actions" style="justify-content: flex-end;">
+                                        <form method="POST" action="user_management.php" style="margin: 0;">
+                                            <input type="hidden" name="toggle_id" value="<?php echo $c['id']; ?>">
+                                            <button type="submit" class="btn btn-secondary btn-sm">
+                                                <?php echo ($c['status'] === 'active') ? 'Deactivate' : 'Activate'; ?>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

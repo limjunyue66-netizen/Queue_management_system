@@ -98,38 +98,38 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>CODE</th>
-                        <th>SERVICE NAME</th>
-                        <th>DESCRIPTION</th>
-                        <th>EST. DURATION</th>
-                        <th>USAGE</th>
-                        <th>STATUS</th>
-                        <th>ACTIONS</th>
+                        <th style="width: 10%;">CODE</th>
+                        <th style="width: 22%;">SERVICE NAME</th>
+                        <th style="width: 28%;">DESCRIPTION</th>
+                        <th style="width: 16%;">EST. DURATION</th>
+                        <th style="width: 12%;">USAGE</th>
+                        <th style="width: 12%;">STATUS</th>
+                        <th style="width: 10%; text-align: right;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($services as $srv): ?>
                         <tr>
                             <td>
-                                <span style="display: inline-block; padding: 0.25rem 0.55rem; background: #e0f2fe; color: #0284c7; border-radius: 6px; font-weight: 800; font-size: 0.82rem;">
+                                <span class="service-code-tag" style="margin-right: 0;">
                                     <?php echo e($srv['code']); ?>
                                 </span>
                             </td>
-                            <td><strong style="color: #0f172a; font-size: 0.95rem;"><?php echo e($srv['name']); ?></strong></td>
-                            <td style="color: #64748b; font-size: 0.85rem; max-width: 320px;">
+                            <td><strong style="color: #0f172a; font-size: 0.98rem;"><?php echo e($srv['name']); ?></strong></td>
+                            <td style="color: #64748b; font-size: 0.88rem; line-height: 1.5;">
                                 <?php echo e($srv['description']); ?>
                             </td>
                             <td>
-                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 700; color: #d97706; background: #fef3c7; padding: 0.2rem 0.5rem; border-radius: 12px;">
-                                    <?php echo getIcon('clock', 12); ?> <?php echo (int)$srv['est_duration']; ?> mins
+                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.88rem; font-weight: 700; color: #d97706; background: #fef3c7; padding: 0.3rem 0.65rem; border-radius: 9999px;">
+                                    <?php echo getIcon('clock', 13); ?> <?php echo (int)$srv['est_duration']; ?> mins
                                 </span>
                             </td>
-                            <td style="font-size: 0.82rem; color: #64748b;">
-                                <?php echo (int)$srv['app_count']; ?> apps &bull; <?php echo (int)$srv['queue_count']; ?> queues
+                            <td style="font-size: 0.85rem; color: #64748b;">
+                                <strong><?php echo (int)$srv['app_count']; ?></strong> apps &bull; <strong><?php echo (int)$srv['queue_count']; ?></strong> queues
                             </td>
                             <td><?php echo renderStatusBadge($srv['status']); ?></td>
-                            <td>
-                                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                            <td style="text-align: right;">
+                                <div class="table-actions" style="justify-content: flex-end;">
                                     <!-- Toggle Status Button -->
                                     <form method="POST" action="services.php" style="margin: 0;">
                                         <input type="hidden" name="action" value="toggle_status">

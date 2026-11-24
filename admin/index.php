@@ -187,19 +187,19 @@ require_once __DIR__ . '/../includes/header.php';
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>TICKET NUMBER</th>
-                    <th>CUSTOMER NAME & IC</th>
-                    <th>SERVICE TYPE</th>
-                    <th>TYPE</th>
-                    <th>STATION</th>
-                    <th>STATUS</th>
-                    <th>ISSUED AT</th>
+                    <th style="width: 14%;">TICKET NO</th>
+                    <th style="width: 22%;">CUSTOMER & IC</th>
+                    <th style="width: 20%;">SERVICE TYPE</th>
+                    <th style="width: 12%;">TYPE</th>
+                    <th style="width: 12%;">STATION</th>
+                    <th style="width: 10%;">STATUS</th>
+                    <th style="width: 10%; text-align: right;">ISSUED AT</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($recentQueues)): ?>
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 2.5rem 1rem; color: #94a3b8;">
+                        <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: #94a3b8;">
                             No queue tickets issued yet.
                         </td>
                     </tr>
@@ -207,23 +207,25 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php foreach ($recentQueues as $q): ?>
                         <tr>
                             <td>
-                                <strong style="color: #0284c7; font-size: 1.1rem;"><?php echo e($q['queue_number']); ?></strong>
+                                <strong style="color: #0284c7; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px;"><?php echo e($q['queue_number']); ?></strong>
                             </td>
                             <td>
-                                <div style="font-weight: 700; color: #1e293b;"><?php echo e($q['customer_name']); ?></div>
+                                <div style="font-weight: 700; color: #0f172a; font-size: 0.93rem;"><?php echo e($q['customer_name']); ?></div>
                                 <?php if (!empty($q['customer_ic'])): ?>
-                                    <small style="color: #64748b;"><?php echo e($q['customer_ic']); ?></small>
+                                    <div class="cell-sub" style="margin-top: 0.15rem;"><?php echo e($q['customer_ic']); ?></div>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo e($q['service_type']); ?></td>
+                            <td><strong style="color: #334155; font-size: 0.92rem;"><?php echo e($q['service_type']); ?></strong></td>
                             <td>
-                                <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 12px; background: <?php echo ($q['customer_type'] === 'appointment') ? '#e0e7ff; color: #4338ca;' : '#f1f5f9; color: #475569;'; ?>">
+                                <span style="font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 9999px; background: <?php echo ($q['customer_type'] === 'appointment') ? '#e0e7ff; color: #4338ca;' : '#f1f5f9; color: #475569;'; ?>">
                                     <?php echo ($q['customer_type'] === 'appointment') ? 'Appointment' : 'Walk-in'; ?>
                                 </span>
                             </td>
-                            <td><?php echo $q['counter_number'] ? e($q['counter_number']) : '<span style="color:#94a3b8;">-</span>'; ?></td>
+                            <td><?php echo $q['counter_number'] ? '<strong style="color:#0f172a;">' . e($q['counter_number']) . '</strong>' : '<span style="color:#94a3b8;">-</span>'; ?></td>
                             <td><?php echo renderStatusBadge($q['status']); ?></td>
-                            <td><?php echo date('h:i A', strtotime($q['created_at'])); ?></td>
+                            <td style="text-align: right;">
+                                <span style="font-size: 0.88rem; color: #64748b; font-weight: 600;"><?php echo date('h:i A', strtotime($q['created_at'])); ?></span>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

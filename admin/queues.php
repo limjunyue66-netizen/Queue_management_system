@@ -92,35 +92,35 @@ require_once __DIR__ . '/../includes/header.php';
         <table class="table">
             <thead>
                 <tr>
-                    <th style="width: 10%;">Queue No</th>
-                    <th style="width: 16%;">Customer</th>
-                    <th style="width: 16%;">Service</th>
-                    <th style="width: 12%;">Counter</th>
-                    <th style="width: 12%;">Staff</th>
-                    <th style="width: 10%;">Time</th>
-                    <th style="width: 11%;">Status</th>
-                    <th style="width: 13%; text-align: right;">Actions</th>
+                    <th style="width: 12%;">QUEUE NO</th>
+                    <th style="width: 18%;">CUSTOMER</th>
+                    <th style="width: 18%;">SERVICE</th>
+                    <th style="width: 12%;">COUNTER</th>
+                    <th style="width: 12%;">STAFF</th>
+                    <th style="width: 10%;">TIME</th>
+                    <th style="width: 10%;">STATUS</th>
+                    <th style="width: 8%; text-align: right;">ACTIONS</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($todayQueues)): ?>
                     <tr>
-                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
                             No queue tickets generated today.
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($todayQueues as $q): ?>
                         <tr>
-                            <td><strong style="color: #1d4ed8; font-size: 1.05rem;"><?php echo e($q['queue_number']); ?></strong></td>
-                            <td><strong><?php echo e($q['customer_name']); ?></strong></td>
-                            <td><span style="font-size: 0.85rem; color: #475569;"><?php echo e($q['service_type']); ?></span></td>
-                            <td><?php echo $q['counter_number'] ? e($q['counter_number']) : '<span style="color:#94a3b8;">-</span>'; ?></td>
-                            <td><?php echo $q['staff_name'] ? e($q['staff_name']) : '<span style="color:#94a3b8;">-</span>'; ?></td>
-                            <td><span style="color: #64748b; font-size: 0.85rem;"><?php echo formatTimeOnly($q['created_at']); ?></span></td>
+                            <td><strong style="color: #1d4ed8; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px;"><?php echo e($q['queue_number']); ?></strong></td>
+                            <td><strong style="color: #0f172a; font-size: 0.95rem;"><?php echo e($q['customer_name']); ?></strong></td>
+                            <td><span style="font-size: 0.9rem; color: #334155; font-weight: 600;"><?php echo e($q['service_type']); ?></span></td>
+                            <td><?php echo $q['counter_number'] ? '<strong style="color:#0f172a;">' . e($q['counter_number']) . '</strong>' : '<span style="color:#94a3b8;">-</span>'; ?></td>
+                            <td><?php echo $q['staff_name'] ? '<span style="color:#475569;">' . e($q['staff_name']) . '</span>' : '<span style="color:#94a3b8;">-</span>'; ?></td>
+                            <td><span style="color: #64748b; font-size: 0.88rem;"><?php echo formatTimeOnly($q['created_at']); ?></span></td>
                             <td><?php echo renderStatusBadge($q['status']); ?></td>
                             <td style="text-align: right;">
-                                <div style="display: inline-flex; gap: 0.35rem; align-items: center; justify-content: flex-end;">
+                                <div class="table-actions" style="justify-content: flex-end;">
                                     <form method="POST" action="queues.php" style="margin: 0;">
                                         <input type="hidden" name="action" value="update_status">
                                         <input type="hidden" name="queue_id" value="<?php echo $q['id']; ?>">

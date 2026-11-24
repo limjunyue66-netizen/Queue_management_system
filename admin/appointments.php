@@ -99,12 +99,12 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>REF & SERVICE</th>
-                        <th>CITIZEN INFO</th>
-                        <th>SCHEDULED DATE & TIME</th>
-                        <th>CHECK-IN TIME</th>
-                        <th>STATUS</th>
-                        <th>ACTIONS</th>
+                        <th style="width: 24%;">REF & SERVICE</th>
+                        <th style="width: 22%;">CITIZEN INFO</th>
+                        <th style="width: 20%;">SCHEDULED DATE & TIME</th>
+                        <th style="width: 14%;">CHECK-IN TIME</th>
+                        <th style="width: 10%;">STATUS</th>
+                        <th style="width: 10%; text-align: right;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,54 +118,57 @@ require_once __DIR__ . '/../includes/header.php';
                         <?php foreach ($appointments as $a): ?>
                             <tr>
                                 <td>
-                                    <strong style="color: #0284c7; font-size: 0.95rem;"><?php echo e($a['appointment_ref']); ?></strong>
-                                    <div style="font-size: 0.82rem; font-weight: 600; color: #334155; margin-top: 0.15rem;">
-                                        [<?php echo e($a['service_code']); ?>] <?php echo e($a['service_name']); ?>
+                                    <strong style="color: #0284c7; font-size: 0.98rem; font-weight: 800; letter-spacing: 0.3px;"><?php echo e($a['appointment_ref']); ?></strong>
+                                    <div style="display: flex; align-items: center; margin-top: 0.35rem;">
+                                        <span class="service-code-tag"><?php echo e($a['service_code']); ?></span>
+                                        <strong style="color: #0f172a; font-size: 0.92rem;"><?php echo e($a['service_name']); ?></strong>
                                     </div>
                                     <?php if (!empty($a['remarks'])): ?>
-                                        <small style="color: #64748b;"><?php echo e($a['remarks']); ?></small>
+                                        <div class="cell-sub"><?php echo e($a['remarks']); ?></div>
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div style="font-weight: 700; color: #1e293b;"><?php echo e($a['user_name']); ?></div>
-                                    <div style="font-size: 0.8rem; color: #64748b;">
+                                    <div style="font-weight: 700; color: #0f172a; font-size: 0.93rem;"><?php echo e($a['user_name']); ?></div>
+                                    <div class="cell-sub">
                                         IC: <?php echo e($a['user_ic']); ?> &bull; <?php echo e($a['user_phone']); ?>
                                     </div>
-                                    <small style="color: #94a3b8;"><?php echo e($a['user_email']); ?></small>
+                                    <div style="font-size: 0.78rem; color: #94a3b8;"><?php echo e($a['user_email']); ?></div>
                                 </td>
                                 <td>
-                                    <div style="font-weight: 700; color: #0f172a;"><?php echo date('D, d M Y', strtotime($a['appointment_date'])); ?></div>
-                                    <div style="font-size: 0.85rem; color: #475569;"><?php echo e($a['time_slot']); ?></div>
+                                    <div style="font-weight: 700; color: #0f172a; font-size: 0.93rem;"><?php echo date('D, d M Y', strtotime($a['appointment_date'])); ?></div>
+                                    <div class="cell-sub"><?php echo e($a['time_slot']); ?></div>
                                 </td>
                                 <td>
                                     <?php if ($a['check_in_time']): ?>
-                                        <span style="color: #16a34a; font-weight: 700; font-size: 0.85rem;">
-                                            <?php echo getIcon('check', 12); ?> <?php echo date('h:i A', strtotime($a['check_in_time'])); ?>
+                                        <span style="color: #16a34a; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                            <?php echo getIcon('check', 14); ?> <?php echo date('h:i A', strtotime($a['check_in_time'])); ?>
                                         </span>
                                     <?php else: ?>
-                                        <span style="color: #94a3b8; font-size: 0.82rem;">Not checked in</span>
+                                        <span style="color: #94a3b8; font-size: 0.85rem;">Not checked in</span>
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo renderStatusBadge($a['status']); ?></td>
-                                <td>
-                                    <form method="POST" action="appointments.php" style="display: flex; gap: 0.35rem; margin: 0;">
-                                        <input type="hidden" name="action" value="set_status">
-                                        <input type="hidden" name="id" value="<?php echo $a['id']; ?>">
-                                        <?php if ($a['status'] === 'confirmed'): ?>
-                                            <button type="submit" name="status" value="completed" class="btn btn-sm" style="background:#16a34a; color:#fff; padding: 0.3rem 0.5rem;" title="Mark Completed">
-                                                Complete
-                                            </button>
-                                            <button type="submit" name="status" value="cancelled" class="btn btn-danger btn-sm" style="padding: 0.3rem 0.5rem;" title="Cancel Booking">
-                                                Cancel
-                                            </button>
-                                        <?php elseif ($a['status'] === 'cancelled'): ?>
-                                            <button type="submit" name="status" value="confirmed" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem;">
-                                                Re-confirm
-                                            </button>
-                                        <?php else: ?>
-                                            <span style="color: #94a3b8; font-size: 0.8rem;">-</span>
-                                        <?php endif; ?>
-                                    </form>
+                                <td style="text-align: right;">
+                                    <div class="table-actions" style="justify-content: flex-end;">
+                                        <form method="POST" action="appointments.php" style="display: inline-flex; gap: 0.45rem; margin: 0;">
+                                            <input type="hidden" name="action" value="set_status">
+                                            <input type="hidden" name="id" value="<?php echo $a['id']; ?>">
+                                            <?php if ($a['status'] === 'confirmed'): ?>
+                                                <button type="submit" name="status" value="completed" class="btn btn-sm" style="background:#16a34a; color:#fff;" title="Mark Completed">
+                                                    Complete
+                                                </button>
+                                                <button type="submit" name="status" value="cancelled" class="btn btn-danger btn-sm" title="Cancel Booking">
+                                                    Cancel
+                                                </button>
+                                            <?php elseif ($a['status'] === 'cancelled'): ?>
+                                                <button type="submit" name="status" value="confirmed" class="btn btn-secondary btn-sm">
+                                                    Re-confirm
+                                                </button>
+                                            <?php else: ?>
+                                                <span style="color: #94a3b8; font-size: 0.85rem;">-</span>
+                                            <?php endif; ?>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
