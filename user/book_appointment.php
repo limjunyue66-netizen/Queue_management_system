@@ -17,7 +17,7 @@ $timeSlots = getStandardTimeSlots();
 $error = '';
 $selectedService = $_POST['service_id'] ?? ($services[0]['id'] ?? 1);
 $selectedDate = $_POST['appointment_date'] ?? date('Y-m-d');
-$selectedSlot = $_POST['time_slot'] ?? $timeSlots[0];
+$selectedSlot = $_POST['time_slot'] ?? '';
 $remarks = trim($_POST['remarks'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
@@ -108,12 +108,12 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php foreach ($timeSlots as $slot): 
                         $left = getAvailableSlotsCount($pdo, $selectedService, $selectedDate, $slot);
                         $isFull = ($left <= 0);
-                        $isChecked = ($selectedSlot === $slot && !$isFull);
+                        $isChecked = (!empty($selectedSlot) && $selectedSlot === $slot && !$isFull);
                         $cardClass = 'time-slot-card' . ($isChecked ? ' selected' : '') . ($isFull ? ' disabled' : '');
                     ?>
                         <label class="<?php echo $cardClass; ?>">
                             <div style="display: flex; align-items: center; gap: 0.65rem;">
-                                <input type="radio" name="time_slot" value="<?php echo e($slot); ?>" <?php echo $isChecked ? 'checked' : ''; ?> <?php echo $isFull ? 'disabled' : ''; ?> style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                <input type="radio" name="time_slot" value="<?php echo e($slot); ?>" <?php echo $isChecked ? 'checked' : ''; ?> <?php echo $isFull ? 'disabled' : ''; ?> required style="accent-color: var(--primary); width: 16px; height: 16px;">
                                 <span style="font-weight: 600; font-size: 0.92rem; color: #1e293b;"><?php echo e($slot); ?></span>
                             </div>
                             <span style="font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 12px; background: <?php echo $isFull ? '#fee2e2' : '#dcfce7'; ?>; color: <?php echo $isFull ? '#b91c1c' : '#15803d'; ?>; border: 1px solid <?php echo $isFull ? '#fca5a5' : '#bbf7d0'; ?>;">
