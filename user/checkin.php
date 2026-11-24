@@ -16,9 +16,16 @@ $today = date('Y-m-d');
 $error = '';
 $success = '';
 
-// Handle Check-In Submission
+// Handle Check-In Submission (Both POST and GET with appointment_id)
+$requestedAppId = 0;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkin_appointment_id'])) {
-    $appId = (int)$_POST['checkin_appointment_id'];
+    $requestedAppId = (int)$_POST['checkin_appointment_id'];
+} elseif (isset($_GET['appointment_id']) && (int)$_GET['appointment_id'] > 0) {
+    $requestedAppId = (int)$_GET['appointment_id'];
+}
+
+if ($requestedAppId > 0) {
+    $appId = $requestedAppId;
 
     // Verify appointment belongs to user and is today
     $stmt = $pdo->prepare("
@@ -71,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkin_appointment_i
     }
 }
 
-// Check if user already checked in today
+// Check if user has a specific ticket requested or active waiting ticket today
 $checkedInTicket = trim($_GET['ticket'] ?? ($_GET['num'] ?? ($_GET['queue_number'] ?? '')));
 $activeQueue = null;
 
@@ -89,13 +96,16 @@ if (!empty($checkedInTicket)) {
 }
 
 if (!$activeQueue) {
-    // Check if user has an existing queue ticket created today
+    // Check if user has an ACTIVE pending queue ticket (waiting, calling, serving) today
+    // IMPORTANT: Do NOT fetch completed or skipped tickets to avoid blocking check-in of new appointments!
     $stmt = $pdo->prepare("
         SELECT q.*, a.appointment_ref, c.counter_number 
         FROM queues q
         LEFT JOIN appointments a ON q.appointment_id = a.id
         LEFT JOIN counters c ON q.counter_id = c.id
-        WHERE (q.customer_name = ? OR q.customer_ic = ?) AND DATE(q.created_at) = ?
+        WHERE (q.customer_name = ? OR q.customer_ic = ?) 
+          AND DATE(q.created_at) = ?
+          AND q.status IN ('waiting', 'calling', 'serving')
         ORDER BY q.id DESC LIMIT 1
     ");
     $stmt->execute([$currentUser['full_name'], $currentUser['ic_passport'], $today]);
@@ -233,17 +243,18 @@ require_once __DIR__ . '/../includes/header.php';
                 </a>
             </div>
         </div>
+    <?php endif; ?>
 
-    <?php elseif (!empty($todayEligibleAppointments)): ?>
-        <!-- Eligible Appointment Ready for Check-in -->
-        <div class="card" style="padding: 2.25rem;">
+    <?php if (!empty($todayEligibleAppointments)): ?>
+        <!-- Eligible Appointments Ready for Check-in -->
+        <div class="card" style="padding: 2.25rem; <?php echo $activeQueue ? 'margin-top: 2rem;' : ''; ?>">
             <div style="background: #2563eb; color: #fff; padding: 1rem 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
                 <?php echo getIcon('calendar', 24); ?>
-                <span style="font-weight: 700; font-size: 1.05rem;">Confirm Arrival for Today (<?php echo date('d M Y'); ?>)</span>
+                <span style="font-weight: 700; font-size: 1.05rem;">Available Appointment(s) for Check-In Today (<?php echo date('d M Y'); ?>)</span>
             </div>
 
             <p style="color: #475569; margin-bottom: 1.5rem; font-size: 0.95rem;">
-                You have <strong><?php echo count($todayEligibleAppointments); ?></strong> eligible appointment(s) scheduled for today. Select one to generate your ticket:
+                You have <strong><?php echo count($todayEligibleAppointments); ?></strong> appointment(s) ready for arrival check-in. Click below to generate your queue ticket:
             </p>
 
             <?php foreach ($todayEligibleAppointments as $app): ?>
@@ -270,8 +281,8 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endforeach; ?>
         </div>
 
-    <?php else: ?>
-        <!-- No Appointments Today -->
+    <?php elseif (!$activeQueue): ?>
+        <!-- No Appointments Today and No Active Queue -->
         <div class="card" style="text-align: center; padding: 3.5rem 2rem;">
             <div style="width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; color: #dc2626; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
                 <?php echo getIcon('alert-triangle', 28); ?>

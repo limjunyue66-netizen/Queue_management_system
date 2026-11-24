@@ -217,9 +217,12 @@ require_once __DIR__ . '/../includes/header.php';
                                 </td>
                                 <td style="padding: 0.85rem 0.55rem; text-align: right; white-space: nowrap;">
                                     <?php if ($app['appointment_date'] === date('Y-m-d') && $app['status'] === 'confirmed'): ?>
-                                        <a href="checkin.php" class="btn btn-sm" style="background: #16a34a; color: #fff; padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700;">
-                                            Check In
-                                        </a>
+                                        <form method="POST" action="checkin.php" style="margin: 0; display: inline;">
+                                            <input type="hidden" name="checkin_appointment_id" value="<?php echo $app['id']; ?>">
+                                            <button type="submit" class="btn btn-sm" style="background: #16a34a; color: #fff; padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; border: none; cursor: pointer;">
+                                                Check In
+                                            </button>
+                                        </form>
                                     <?php else: ?>
                                         <a href="my_appointments.php" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;">
                                             Details

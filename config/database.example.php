@@ -1,30 +1,30 @@
 <?php
 // =============================================================================
-// Database Configuration and Connection Template (Example)
-// Copy this file to config/database.php and adjust your database credentials.
+// Database Configuration Template (Copy to config/database.php)
+// Works out-of-the-box on local XAMPP and production cPanel Cloud Hosting
 // =============================================================================
 
-// Set standard timezone
+// Set standard timezone (e.g. Asia/Kuala_Lumpur GMT+8)
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
 // -----------------------------------------------------------------------------
-// [OPTION 1: Local Development Setup (XAMPP / WAMP)]
+// [OPTION 1: Local Development / XAMPP]
 // -----------------------------------------------------------------------------
 define('DB_HOST', '127.0.0.1');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'queue_db');
-define('DB_PORT', 3307); // Default XAMPP port (auto fallback to 3306)
+define('DB_PORT', 3306); // Default MySQL port (or 3307 if configured)
 
 // -----------------------------------------------------------------------------
-// [OPTION 2: Production / cPanel Web Hosting Setup]
-// When deploying to cPanel or VPS, adjust with your hosting database credentials:
+// [OPTION 2: Production Hosting / cPanel Setup]
+// For production, comment out Option 1 and fill in your database credentials:
 // -----------------------------------------------------------------------------
 /*
 define('DB_HOST', 'localhost');
-define('DB_USER', 'yourcpanel_dbuser');
+define('DB_USER', 'your_cpanel_db_username');
 define('DB_PASS', 'your_secure_password');
-define('DB_NAME', 'yourcpanel_dbname');
+define('DB_NAME', 'your_cpanel_db_name');
 define('DB_PORT', 3306);
 */
 
@@ -54,11 +54,7 @@ function getDBConnection() {
             }
         }
 
-        die("<div style='font-family: Arial, sans-serif; max-width: 650px; margin: 50px auto; padding: 25px; border-radius: 8px; background: #fff3f3; border: 1px solid #ffc9c9; color: #b71c1c;'>
-            <h2 style='margin-top: 0;'>Database Connection Error</h2>
-            <p>Could not connect to database <strong>" . htmlspecialchars(DB_NAME) . "</strong>.</p>
-            <p>Please check your credentials in <code>config/database.php</code>.</p>
-        </div>");
+        die("Database connection failed. Please check your credentials in config/database.php. Error: " . htmlspecialchars($lastException ? $lastException->getMessage() : 'Unknown'));
     }
     return $pdo;
 }

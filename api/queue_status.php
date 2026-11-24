@@ -22,10 +22,11 @@ if (empty($queueNumber)) {
 
 // Fetch queue record (most recent for this ticket)
 $stmt = $pdo->prepare("
-    SELECT q.*, c.counter_number, c.counter_name, u.full_name as staff_name
+    SELECT q.*, c.counter_number, c.counter_name, u.full_name as staff_name, a.status as app_status
     FROM queues q
     LEFT JOIN counters c ON q.counter_id = c.id
     LEFT JOIN users u ON q.staff_id = u.id
+    LEFT JOIN appointments a ON q.appointment_id = a.id
     WHERE UPPER(TRIM(q.queue_number)) = ? 
        OR REPLACE(REPLACE(UPPER(q.queue_number), ' ', ''), '-', '') = ?
        OR UPPER(TRIM(q.queue_number)) LIKE ?
@@ -37,6 +38,12 @@ $queue = $stmt->fetch();
 if (!$queue) {
     echo json_encode(['success' => false, 'message' => 'Queue ticket not found.']);
     exit;
+}
+
+// Auto-sync: If linked appointment is already completed in admin, sync queue status to completed
+if (!empty($queue['app_status']) && $queue['app_status'] === 'completed' && $queue['status'] !== 'completed') {
+    $pdo->prepare("UPDATE queues SET status = 'completed', completed_at = IFNULL(completed_at, NOW()) WHERE id = ?")->execute([$queue['id']]);
+    $queue['status'] = 'completed';
 }
 
 // Calculate customers ahead if waiting

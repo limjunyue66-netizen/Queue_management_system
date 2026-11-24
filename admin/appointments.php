@@ -18,7 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = $_POST['status'] ?? 'confirmed';
         $stmt = $pdo->prepare("UPDATE appointments SET status = ? WHERE id = ?");
         $stmt->execute([$status, $appId]);
-        setFlash('success', "Appointment status updated to " . ucfirst($status) . ".");
+
+        // Automatically synchronize linked queue tickets (e.g. B001, C001, etc.)
+        if ($status === 'completed') {
+            $stmtQ = $pdo->prepare("UPDATE queues SET status = 'completed', completed_at = IFNULL(completed_at, NOW()) WHERE appointment_id = ?");
+            $stmtQ->execute([$appId]);
+        } elseif ($status === 'cancelled') {
+            $stmtQ = $pdo->prepare("UPDATE queues SET status = 'skipped', completed_at = IFNULL(completed_at, NOW()) WHERE appointment_id = ? AND status IN ('waiting', 'calling')");
+            $stmtQ->execute([$appId]);
+        }
+
+        setFlash('success', "Appointment status updated to " . ucfirst($status) . " (linked queue synchronized).");
         header("Location: appointments.php");
         exit;
     }

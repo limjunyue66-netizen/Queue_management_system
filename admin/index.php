@@ -70,8 +70,8 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<!-- 6 Core Metric Cards (Streamlined Modern Layout) -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+<!-- 6 Core Metric Cards (Streamlined Symmetrical Layout) -->
+<div class="admin-metrics-grid">
     <!-- 1. USERS -->
     <div style="border: 1.5px solid #e2e8f0; border-left: 4.5px solid #2563eb; border-radius: 10px; background: #ffffff; padding: 1.15rem 1.25rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04); display: flex; justify-content: space-between; align-items: flex-start;">
         <div>

@@ -111,9 +111,12 @@ require_once __DIR__ . '/../includes/header.php';
                             <td style="text-align: right;">
                                 <div class="table-actions" style="justify-content: flex-end;">
                                     <?php if ($isToday && $isConfirmed): ?>
-                                        <a href="checkin.php" class="btn btn-sm" style="background: #16a34a; color: #fff;">
-                                            <?php echo getIcon('check', 14); ?> Check In
-                                        </a>
+                                        <form method="POST" action="checkin.php" style="margin: 0; display: inline;">
+                                            <input type="hidden" name="checkin_appointment_id" value="<?php echo $a['id']; ?>">
+                                            <button type="submit" class="btn btn-sm" style="background: #16a34a; color: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                <?php echo getIcon('check', 14); ?> Check In
+                                            </button>
+                                        </form>
                                     <?php endif; ?>
 
                                     <?php if ($isConfirmed): ?>

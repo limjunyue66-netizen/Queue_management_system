@@ -14,10 +14,11 @@ $queue = null;
 if (!empty($queueNumber)) {
     $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', $queueNumber);
     $stmt = $pdo->prepare("
-        SELECT q.*, c.counter_number, c.counter_name, u.full_name as staff_name
+        SELECT q.*, c.counter_number, c.counter_name, u.full_name as staff_name, a.status as app_status
         FROM queues q
         LEFT JOIN counters c ON q.counter_id = c.id
         LEFT JOIN users u ON q.staff_id = u.id
+        LEFT JOIN appointments a ON q.appointment_id = a.id
         WHERE UPPER(TRIM(q.queue_number)) = ?
            OR REPLACE(REPLACE(UPPER(q.queue_number), ' ', ''), '-', '') = ?
            OR UPPER(TRIM(q.queue_number)) LIKE ?
@@ -25,6 +26,12 @@ if (!empty($queueNumber)) {
     ");
     $stmt->execute([$queueNumber, $cleanNum, $cleanNum . '%']);
     $queue = $stmt->fetch();
+
+    // Auto-sync: If linked appointment was completed in admin, mark queue completed
+    if ($queue && !empty($queue['app_status']) && $queue['app_status'] === 'completed' && $queue['status'] !== 'completed') {
+        $pdo->prepare("UPDATE queues SET status = 'completed', completed_at = IFNULL(completed_at, NOW()) WHERE id = ?")->execute([$queue['id']]);
+        $queue['status'] = 'completed';
+    }
 }
 
 $customersAhead = 0;
@@ -388,6 +395,47 @@ if ($queue && $queue['status'] === 'waiting') {
 var currentTicket = "<?php echo addslashes($queueNumber); ?>";
 var lastStatus = "<?php echo $queue ? $queue['status'] : ''; ?>";
 
+function playMobileDingDong(onFinish) {
+    try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+            if (typeof onFinish === 'function') onFinish();
+            return;
+        }
+        var ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+        
+        var osc1 = ctx.createOscillator();
+        var gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(784, now);
+        gain1.gain.setValueAtTime(0.35, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.5);
+
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(587.3, now + 0.25);
+        gain2.gain.setValueAtTime(0.4, now + 0.25);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.25);
+        osc2.stop(now + 1.0);
+
+        setTimeout(function() {
+            if (typeof onFinish === 'function') onFinish();
+        }, 550);
+    } catch (e) {
+        if (typeof onFinish === 'function') onFinish();
+    }
+}
+
 function pollQueueStatus(isManual) {
     if (!currentTicket) return;
     
@@ -423,8 +471,18 @@ function pollQueueStatus(isManual) {
             } else if (data.status === 'calling') {
                 headline.innerText = '🔔 NOW CALLING';
                 submsg.innerText = 'Please proceed immediately to ' + data.counter_number + '!';
-                if (lastStatus !== 'calling' && window.navigator && window.navigator.vibrate) {
-                    window.navigator.vibrate([300, 100, 300]);
+                if (lastStatus !== 'calling') {
+                    if (window.navigator && window.navigator.vibrate) {
+                        window.navigator.vibrate([300, 100, 300, 100, 300]);
+                    }
+                    playMobileDingDong(function() {
+                        if ('speechSynthesis' in window) {
+                            var spokenTicket = (data.queue_number || '').split('').join(' ');
+                            var msg = new SpeechSynthesisUtterance("Now calling ticket " + spokenTicket + ", please proceed to " + data.counter_number);
+                            msg.rate = 0.9;
+                            window.speechSynthesis.speak(msg);
+                        }
+                    });
                 }
             } else if (data.status === 'serving') {
                 headline.innerText = 'In Service';

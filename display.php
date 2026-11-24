@@ -48,13 +48,22 @@ $recentTicketJson = $currentCall && $currentCall['status'] === 'calling' ? json_
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="display-header">
-    <h1 style="font-size: 2.3rem; font-weight: 900; margin-bottom: 0.25rem; letter-spacing: -0.5px;">
-        <?php echo getIcon('tv', 32); ?> NOW SERVING DISPLAY
-    </h1>
-    <p style="opacity: 0.85; font-size: 1rem;">
-        <?php echo date('l, d F Y'); ?> &bull; Real-time Calling Screen & Counter Status (Auto updates every 5 seconds)
-    </p>
+<div class="display-header" style="position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 2.3rem; font-weight: 900; margin-bottom: 0.25rem; letter-spacing: -0.5px;">
+                <?php echo getIcon('tv', 32); ?> NOW SERVING DISPLAY
+            </h1>
+            <p style="opacity: 0.85; font-size: 1rem; margin: 0;">
+                <?php echo date('l, d F Y'); ?> &bull; Real-time Calling Screen & Counter Status (Auto updates every 5 seconds)
+            </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <button id="btnVoiceToggle" onclick="testOrEnableVoice()" class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); padding: 0.55rem 1.15rem; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; transition: all 0.2s;">
+                <span id="voiceIcon">🔊</span> <span id="voiceLabel">Voice Audio: Ready (Click to Test)</span>
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Main Spotlight / Calling Hero -->
@@ -153,19 +162,94 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
 </div>
 
-<!-- Audio Chime & Web Speech Announcer -->
+<!-- High-Quality Ding-Dong Chime & Web Speech Announcer -->
 <script>
     var recentCall = <?php echo $recentTicketJson; ?>;
+
+    // Professional Hall Ding-Dong Chime (Dual-frequency synthesized chime)
+    function playDingDong(onFinish) {
+        try {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+                if (typeof onFinish === 'function') onFinish();
+                return;
+            }
+            var ctx = new AudioCtx();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            var now = ctx.currentTime;
+            
+            // Note 1: High crisp chime (784Hz - G5)
+            var osc1 = ctx.createOscillator();
+            var gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(784, now);
+            gain1.gain.setValueAtTime(0.35, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.55);
+
+            // Note 2: Harmonious lower chime (587.3Hz - D5)
+            var osc2 = ctx.createOscillator();
+            var gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(587.3, now + 0.28);
+            gain2.gain.setValueAtTime(0.4, now + 0.28);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(now + 0.28);
+            osc2.stop(now + 1.1);
+
+            setTimeout(function() {
+                if (typeof onFinish === 'function') onFinish();
+            }, 650);
+        } catch (e) {
+            console.log('AudioContext play error:', e);
+            if (typeof onFinish === 'function') onFinish();
+        }
+    }
+
+    function speakAnnouncement(ticketText, counterText) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel(); // clear previous queue
+
+        var spokenTicket = (ticketText || '').split('').join(' ');
+        var announcement = "Attention please. Ticket number " + spokenTicket + ", please proceed to " + (counterText || 'the assigned counter') + ".";
+        var msg = new SpeechSynthesisUtterance(announcement);
+        msg.rate = 0.88;
+        msg.pitch = 1.05;
+        msg.volume = 1.0;
+        msg.lang = 'en-US';
+
+        window.speechSynthesis.speak(msg);
+    }
+
+    function testOrEnableVoice() {
+        var btn = document.getElementById('btnVoiceToggle');
+        var label = document.getElementById('voiceLabel');
+        if (label) label.innerText = 'Voice Calling: Active 🔊';
+        if (btn) btn.style.background = '#16a34a';
+
+        playDingDong(function() {
+            speakAnnouncement('A 0 0 1', 'Counter 01');
+        });
+    }
+
+    // Auto-announce newly called tickets
     if (recentCall && recentCall.queue_number) {
         var lastAnnounced = sessionStorage.getItem('last_calling_ticket');
         if (lastAnnounced !== recentCall.queue_number) {
             sessionStorage.setItem('last_calling_ticket', recentCall.queue_number);
-            if ('speechSynthesis' in window) {
-                var spokenTicket = recentCall.queue_number.split('').join(' ');
-                var msg = new SpeechSynthesisUtterance("Ticket number " + spokenTicket + ", please proceed to " + (recentCall.counter_number || 'the assigned counter'));
-                msg.rate = 0.9;
-                window.speechSynthesis.speak(msg);
-            }
+            setTimeout(function() {
+                playDingDong(function() {
+                    speakAnnouncement(recentCall.queue_number, recentCall.counter_number);
+                });
+            }, 400);
         }
     }
 

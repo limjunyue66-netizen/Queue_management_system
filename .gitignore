@@ -1,19 +1,15 @@
-# Dependencies & OS Files
-.DS_Store
-Thumbs.db
-desktop.ini
-*.log
-
-# Archives & Temporary Files
+# Deployment Archives
+cpanel_deploy.zip
 *.zip
 *.tar.gz
-*.rar
 
-# IDE & Editor Configs
+# Environment & Logs
+.env
+*.log
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
-
-# Antigravity artifacts
-.system_generated/
+*.tmp

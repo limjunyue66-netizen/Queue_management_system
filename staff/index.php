@@ -22,8 +22,8 @@ if (isset($_POST['set_counter'])) {
     $selectedCounterId = intval($_POST['counter_id'] ?? 0);
     if ($selectedCounterId > 0) {
         $_SESSION['active_counter_id'] = $selectedCounterId;
-        $stmt = $pdo->prepare("UPDATE counters SET current_staff_id = ?, status = 'open' WHERE id = ?");
-        $stmt->execute([$staffId, $selectedCounterId]);
+        $stmt = $pdo->prepare("UPDATE counters SET status = 'open' WHERE id = ?");
+        $stmt->execute([$selectedCounterId]);
         setFlash('success', 'You are now operating at this counter.');
     }
     header("Location: index.php");
@@ -45,18 +45,33 @@ if (!$activeCounterId) {
     $_SESSION['active_counter_id'] = $activeCounterId;
 }
 
-// Fetch counter info if selected
+// Fetch counter info if selected (join official designated service)
 $currentCounter = null;
 if ($activeCounterId) {
-    $cStmt = $pdo->prepare("SELECT * FROM counters WHERE id = ?");
+    $cStmt = $pdo->prepare("
+        SELECT c.*, s.name AS service_name, s.code AS service_code 
+        FROM counters c
+        LEFT JOIN services s ON c.designated_service_id = s.id
+        WHERE c.id = ?
+    ");
     $cStmt->execute([$activeCounterId]);
     $currentCounter = $cStmt->fetch();
 }
 
 // Determine designated services & ticket prefix for this counter
-$targetServices = $currentCounter ? getCounterDesignatedServices($currentCounter['counter_number'], $currentCounter['counter_name']) : ['General Service'];
+$targetServices = $currentCounter ? getCounterDesignatedServices($currentCounter['counter_number'], $currentCounter['counter_name']) : ['Passport Services'];
+if (!empty($currentCounter['service_name'])) {
+    array_unshift($targetServices, $currentCounter['service_name']);
+    $targetServices = array_values(array_unique($targetServices));
+}
 $counterPrefix = $currentCounter ? getCounterPrefix($currentCounter['counter_number'], $currentCounter['counter_name']) : 'A';
-$designatedService = $targetServices[0] ?? 'General Service';
+if (!empty($currentCounter['service_code'])) {
+    $prefixMap = ['PS' => 'A', 'VA' => 'B', 'WP' => 'C', 'IE' => 'P'];
+    if (isset($prefixMap[$currentCounter['service_code']])) {
+        $counterPrefix = $prefixMap[$currentCounter['service_code']];
+    }
+}
+$designatedService = $targetServices[0] ?? ($currentCounter['service_name'] ?? 'Counter Service');
 
 // Handle Queue State Transitions: call_next, recall, start_serving, complete, skip
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -132,8 +147,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($action === 'complete') {
         $queueId = intval($_POST['queue_id'] ?? 0);
         if ($queueId > 0) {
+            // Check if queue is linked to an appointment
+            $stmtApp = $pdo->prepare("SELECT appointment_id FROM queues WHERE id = ?");
+            $stmtApp->execute([$queueId]);
+            $linkedAppId = $stmtApp->fetchColumn();
+
             $stmt = $pdo->prepare("UPDATE queues SET status = 'completed', completed_at = NOW() WHERE id = ?");
             $stmt->execute([$queueId]);
+
+            // Automatically sync linked appointment to completed
+            if (!empty($linkedAppId)) {
+                $stmtUpdateApp = $pdo->prepare("UPDATE appointments SET status = 'completed' WHERE id = ?");
+                $stmtUpdateApp->execute([$linkedAppId]);
+            }
+
             setFlash('success', 'Transaction completed successfully.');
         }
         header("Location: index.php");
