@@ -191,42 +191,41 @@ a:hover {
 .subnav-bar {
   border-bottom: 1px solid var(--slate-200);
   background: #ffffff;
+  position: relative;
 }
 
 .subnav-container {
-  max-width: 1240px;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1.25rem;
   overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.subnav-container::-webkit-scrollbar {
-  display: none;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .subnav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.3rem;
   list-style: none;
   margin: 0;
-  padding: 0.35rem 0;
+  padding: 0.45rem 0;
   white-space: nowrap;
 }
 
 .subnav-tab {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.95rem;
+  gap: 0.35rem;
+  padding: 0.42rem 0.72rem;
   border-radius: var(--radius-md);
   color: var(--slate-600);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.15s ease;
   white-space: nowrap;
   border: 1px solid transparent;
+  line-height: 1.25;
 }
 
 .subnav-tab:hover {
@@ -238,7 +237,7 @@ a:hover {
   color: var(--primary);
   background-color: #eff6ff;
   font-weight: 700;
-  border-color: #dbeafe;
+  border: 1px solid #dbeafe;
 }
 
 .subnav-tab.tab-staff {

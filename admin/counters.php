@@ -96,7 +96,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="grid grid-2" style="align-items: start;">
+<div class="counters-layout" style="display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 1.5rem; align-items: start;">
     <!-- Add or Edit Form -->
     <div class="card">
         <div class="card-header">
@@ -155,51 +155,55 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- Counter List -->
-    <div class="card">
-        <div class="card-header">
+    <div class="card" style="overflow: hidden;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h2 class="card-title"><?php echo getIcon('desktop', 18); ?> Service Counters</h2>
             <span class="badge badge-open"><?php echo count($counters); ?> Configured</span>
         </div>
 
-        <div class="table-responsive">
-            <table class="table">
+        <div style="overflow-x: auto; width: 100%;">
+            <table class="table" style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
-                        <th>Counter</th>
-                        <th>Status</th>
-                        <th>Assigned Staff</th>
-                        <th>Actions</th>
+                        <th style="width: 32%; padding: 0.9rem 1rem;">Counter</th>
+                        <th style="width: 20%; padding: 0.9rem 0.75rem; text-align: center;">Status</th>
+                        <th style="width: 28%; padding: 0.9rem 0.85rem;">Assigned Staff</th>
+                        <th style="width: 20%; padding: 0.9rem 1rem; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($counters as $c): ?>
                         <tr>
-                            <td>
-                                <strong><?php echo e($c['counter_number']); ?></strong><br>
-                                <small style="color: var(--text-muted);"><?php echo e($c['counter_name']); ?></small>
+                            <td style="padding: 1rem;">
+                                <strong style="font-size: 0.95rem; color: #0f172a;"><?php echo e($c['counter_number']); ?></strong><br>
+                                <small style="color: var(--text-muted); font-size: 0.82rem; line-height: 1.35; display: inline-block; margin-top: 0.15rem;"><?php echo e($c['counter_name']); ?></small>
                             </td>
-                            <td>
-                                <form method="POST" action="counters.php" style="display:inline;">
+                            <td style="padding: 1rem 0.75rem; text-align: center;">
+                                <form method="POST" action="counters.php" style="display:inline-block; margin: 0;">
                                     <input type="hidden" name="action" value="toggle_status">
                                     <input type="hidden" name="counter_id" value="<?php echo $c['id']; ?>">
                                     <input type="hidden" name="new_status" value="<?php echo $c['status'] === 'open' ? 'closed' : 'open'; ?>">
-                                    <button type="submit" class="btn btn-sm <?php echo $c['status'] === 'open' ? 'btn-success' : 'btn-secondary'; ?>" title="Click to toggle status">
+                                    <button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; display: inline-flex;" title="Click to toggle status">
                                         <?php echo renderStatusBadge($c['status']); ?>
                                     </button>
                                 </form>
                             </td>
-                            <td>
-                                <?php echo !empty($c['staff_name']) ? e($c['staff_name']) : '<span style="color:var(--text-muted);">-</span>'; ?>
+                            <td style="padding: 1rem 0.85rem;">
+                                <?php if (!empty($c['staff_name'])): ?>
+                                    <span style="font-weight: 600; color: #1e293b; font-size: 0.88rem;"><?php echo e($c['staff_name']); ?></span>
+                                <?php else: ?>
+                                    <span style="color: var(--text-muted); font-size: 0.88rem;">-</span>
+                                <?php endif; ?>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 0.35rem;">
-                                    <a href="counters.php?edit=<?php echo $c['id']; ?>" class="btn btn-sm btn-secondary" title="Edit">
+                            <td style="padding: 1rem; text-align: right;">
+                                <div style="display: inline-flex; gap: 0.35rem; align-items: center; justify-content: flex-end;">
+                                    <a href="counters.php?edit=<?php echo $c['id']; ?>" class="btn btn-sm btn-secondary" title="Edit" style="padding: 0.4rem 0.65rem;">
                                         <?php echo getIcon('edit', 14); ?>
                                     </a>
-                                    <form method="POST" action="counters.php" onsubmit="return confirm('Are you sure you want to delete <?php echo e($c['counter_number']); ?>?');" style="display:inline;">
+                                    <form method="POST" action="counters.php" onsubmit="return confirm('Are you sure you want to delete <?php echo e($c['counter_number']); ?>?');" style="display:inline-block; margin: 0;">
                                         <input type="hidden" name="action" value="delete_counter">
                                         <input type="hidden" name="counter_id" value="<?php echo $c['id']; ?>">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete" style="padding: 0.4rem 0.65rem;">
                                             <?php echo getIcon('trash', 14); ?>
                                         </button>
                                     </form>

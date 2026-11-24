@@ -114,17 +114,17 @@ $baseUrl = '/Queue_management_system';
                         </li>
                         <li>
                             <a href="<?php echo $baseUrl; ?>/admin/queues.php" class="subnav-tab <?php echo ($currentPage === 'queues.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('list', 16); ?> <span>Queue Monitor</span>
+                                <?php echo getIcon('list', 16); ?> <span>Queues</span>
                             </a>
                         </li>
                         <li>
                             <a href="<?php echo $baseUrl; ?>/admin/staff.php" class="subnav-tab <?php echo ($currentPage === 'staff.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('users', 16); ?> <span>Staff Accounts</span>
+                                <?php echo getIcon('users', 16); ?> <span>Staff</span>
                             </a>
                         </li>
                         <li>
                             <a href="<?php echo $baseUrl; ?>/admin/user_management.php" class="subnav-tab <?php echo ($currentPage === 'user_management.php') ? 'active' : ''; ?>">
-                                <?php echo getIcon('user', 16); ?> <span>Public Citizens</span>
+                                <?php echo getIcon('user', 16); ?> <span>Citizens</span>
                             </a>
                         </li>
                         <li>
@@ -134,7 +134,7 @@ $baseUrl = '/Queue_management_system';
                         </li>
                         <li>
                             <a href="<?php echo $baseUrl; ?>/admin/system_reset.php" class="subnav-tab <?php echo ($currentPage === 'system_reset.php') ? 'active' : ''; ?>" style="color: #0284c7; font-weight: 600;">
-                                <?php echo getIcon('beaker', 16); ?> <span>Demo Simulator</span>
+                                <?php echo getIcon('beaker', 16); ?> <span>Simulator</span>
                             </a>
                         </li>
 
